@@ -1,0 +1,1169 @@
+MISSION: Build a Browser Agent for AI-Powered Functional Testing
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MISSION OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build a complete Python-based Browser Agent that replaces manual Selenium 
+test scripting. The system has two phases:
+
+LEARN phase: A human records themselves using a web app. The agent 
+captures everything — page structure, form fields, interactions, 
+navigation flows — and uses an LLM to convert this raw recording into 
+structured test case definitions stored in a local SQLite database.
+
+TEST phase: The agent autonomously executes those test cases using 
+Playwright — filling forms, clicking buttons, asserting outcomes — 
+and produces an HTML + JSON test report.
+
+The key innovation: when the web app changes (e.g., a form goes from 
+15 fields to 16 fields), the user simply re-records. The agent 
+regenerates the test cases. No manual test script editing ever.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ARCHITECTURE DECISIONS (DO NOT DEVIATE FROM THESE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+These decisions are final. Do not choose alternatives.
+
+Browser control:     playwright (Python async API)
+LLM provider:        Groq API (OpenAI-compatible, free tier)
+  - Complex tasks:   llama-3.3-70b-versatile  (flow understanding, test generation)
+  - Simple/fast:     llama-3.1-8b-instant     (element labeling, locator ranking)
+Storage:             SQLite via aiosqlite (single file, zero config)
+CLI framework:       click + rich (for progress bars and tables)
+Data validation:     pydantic v2
+HTML templating:     jinja2 (for test report generation)
+Retry logic:         tenacity
+Config management:   python-dotenv
+
+Do NOT use:
+- LangChain, LlamaIndex, CrewAI, or any agent framework
+- Vector databases
+- PostgreSQL or any server-based database
+- Selenium or Puppeteer
+- The anthropic or openai Python libraries
+- Any framework that adds abstraction over the Playwright Python API
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PROJECT STRUCTURE (CREATE EXACTLY THIS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+browser_agent/
+├── core/
+│   ├── __init__.py
+│   ├── recorder.py          # Playwright launch + JS injection + event capture
+│   ├── model_builder.py     # Converts raw events into structured ApplicationModel
+│   ├── test_generator.py    # Derives TestCase objects from UserFlows
+│   ├── executor.py          # Autonomously executes test cases with Playwright
+│   └── verifier.py          # Evaluates assertions (URL, text, element presence)
+├── storage/
+│   ├── __init__.py
+│   ├── db.py                # All async SQLite CRUD operations
+│   ├── schema.sql           # All CREATE TABLE statements
+│   └── diff.py              # Compares two ApplicationModel versions
+├── llm/
+│   ├── __init__.py
+│   ├── client.py            # Groq API wrapper with retry + rate limiting
+│   ├── prompts.py           # All prompt templates as module-level constants
+│   └── cache.py             # Disk-based LLM response cache (keyed by input hash)
+├── utils/
+│   ├── __init__.py
+│   ├── locators.py          # Multi-strategy locator generation + resolution
+│   └── screenshots.py       # Screenshot capture with metadata
+├── reporting/
+│   ├── __init__.py
+│   ├── html_reporter.py     # Generates HTML test report using Jinja2
+│   ├── json_reporter.py     # Generates JSON test report for CI/CD
+│   └── templates/
+│       └── report.html      # Jinja2 HTML report template
+├── assets/
+│   └── event_capture.js     # JavaScript injected into browser pages to capture events
+├── schema.py                # All Pydantic models
+├── config.py                # Configuration loaded from .env
+├── cli.py                   # All click CLI commands
+├── .env.example             # Template for environment variables
+├── requirements.txt         # Pinned dependencies
+└── README.md                # Setup and usage instructions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PYDANTIC SCHEMAS (schema.py) — IMPLEMENT EXACTLY THESE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement all of the following Pydantic v2 models in schema.py.
+Do not add, remove, or rename any field.
+
+```python
+from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
+
+class LocatorSpec(BaseModel):
+    strategy: str        # "aria_label" | "role" | "placeholder" | "text" | 
+                         # "id" | "css" | "xpath"
+    value: str
+    confidence: float    # 0.0 to 1.0
+
+class ValidationRule(BaseModel):
+    rule: str            # "required" | "email_format" | "min_length" | 
+                         # "max_length" | "numeric"
+    param: Optional[str] = None
+    typical_error: Optional[str] = None
+
+class ElementModel(BaseModel):
+    id: str
+    page_id: str
+    element_type: str    # "input" | "button" | "select" | "link" | 
+                         # "checkbox" | "radio" | "textarea"
+    semantic_label: str  # LLM-generated: "Email address field"
+    locators: list[LocatorSpec]
+    validation_rules: list[ValidationRule]
+    observed_values: list[str]
+
+class PageModel(BaseModel):
+    id: str
+    version_id: str
+    url_pattern: str     # regex: "^/login$" or "^/checkout"
+    title: str
+    purpose: str         # LLM-generated: "User authentication page"
+    accessibility_snapshot: dict
+
+class FlowStep(BaseModel):
+    sequence: int
+    action: str          # "fill" | "click" | "navigate" | "select" | 
+                         # "check" | "hover" | "clear"
+    element_id: Optional[str] = None
+    value: Optional[str] = None
+    url: Optional[str] = None
+
+class ExpectedOutcome(BaseModel):
+    type: str            # "navigation" | "element_visible" | "text_present" | 
+                         # "element_absent"
+    url_pattern: Optional[str] = None
+    element_label: Optional[str] = None
+    text: Optional[str] = None
+
+class UserFlow(BaseModel):
+    id: str
+    version_id: str
+    name: str            # LLM-generated: "User Login Flow"
+    description: str
+    start_url: str
+    steps: list[FlowStep]
+    expected_outcome: ExpectedOutcome
+
+class TestStep(BaseModel):
+    sequence: int
+    action: str
+    element_id: Optional[str] = None
+    value: Optional[str] = None
+    url: Optional[str] = None
+
+class Assertion(BaseModel):
+    type: str            # "url_contains" | "element_visible" | "text_equals" |
+                         # "element_count" | "element_absent"
+    expected: str
+    element_label: Optional[str] = None
+
+class TestCase(BaseModel):
+    id: str
+    flow_id: str
+    name: str
+    category: str        # "happy_path" | "negative" | "edge_case"
+    steps: list[TestStep]
+    assertions: list[Assertion]
+    confidence: float
+    generated_at: datetime
+
+class StepResult(BaseModel):
+    sequence: int
+    action: str
+    element_label: Optional[str] = None
+    status: str          # "passed" | "failed" | "skipped"
+    locator_used: Optional[str] = None
+    error: Optional[str] = None
+    screenshot_path: Optional[str] = None
+
+class TestResult(BaseModel):
+    id: str
+    run_id: str
+    test_case_id: str
+    test_name: str
+    category: str
+    status: str          # "passed" | "failed" | "errored"
+    duration_ms: int
+    step_results: list[StepResult]
+    assertion_results: list[dict]
+    error_detail: Optional[str] = None
+    failure_screenshot: Optional[str] = None
+
+class AppVersion(BaseModel):
+    id: str
+    app_id: str
+    label: str
+    created_at: datetime
+    is_active: bool
+
+class ApplicationModel(BaseModel):
+    id: str
+    name: str
+    base_url: str
+    version: AppVersion
+    pages: list[PageModel]
+    elements: list[ElementModel]
+    flows: list[UserFlow]
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATABASE SCHEMA (storage/schema.sql) — CREATE EXACTLY THIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+```sql
+CREATE TABLE IF NOT EXISTS applications (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    base_url TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS app_versions (
+    id TEXT PRIMARY KEY,
+    app_id TEXT NOT NULL REFERENCES applications(id),
+    label TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS pages (
+    id TEXT PRIMARY KEY,
+    version_id TEXT NOT NULL REFERENCES app_versions(id),
+    url_pattern TEXT NOT NULL,
+    title TEXT,
+    purpose TEXT,
+    accessibility_snapshot TEXT
+);
+
+CREATE TABLE IF NOT EXISTS elements (
+    id TEXT PRIMARY KEY,
+    page_id TEXT NOT NULL REFERENCES pages(id),
+    element_type TEXT NOT NULL,
+    semantic_label TEXT NOT NULL,
+    locators TEXT NOT NULL,
+    validation_rules TEXT,
+    observed_values TEXT
+);
+
+CREATE TABLE IF NOT EXISTS user_flows (
+    id TEXT PRIMARY KEY,
+    version_id TEXT NOT NULL REFERENCES app_versions(id),
+    name TEXT NOT NULL,
+    description TEXT,
+    start_url TEXT NOT NULL,
+    steps TEXT NOT NULL,
+    expected_outcome TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS test_cases (
+    id TEXT PRIMARY KEY,
+    flow_id TEXT NOT NULL REFERENCES user_flows(id),
+    name TEXT NOT NULL,
+    category TEXT NOT NULL,
+    steps TEXT NOT NULL,
+    assertions TEXT NOT NULL,
+    confidence REAL DEFAULT 0.0,
+    generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS test_runs (
+    id TEXT PRIMARY KEY,
+    app_id TEXT NOT NULL REFERENCES applications(id),
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP,
+    total INTEGER DEFAULT 0,
+    passed INTEGER DEFAULT 0,
+    failed INTEGER DEFAULT 0,
+    errored INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS test_results (
+    id TEXT PRIMARY KEY,
+    run_id TEXT NOT NULL REFERENCES test_runs(id),
+    test_case_id TEXT NOT NULL REFERENCES test_cases(id),
+    test_name TEXT,
+    category TEXT,
+    status TEXT NOT NULL,
+    duration_ms INTEGER,
+    step_results TEXT,
+    assertion_results TEXT,
+    error_detail TEXT,
+    failure_screenshot TEXT
+);
+
+CREATE TABLE IF NOT EXISTS llm_cache (
+    input_hash TEXT PRIMARY KEY,
+    response TEXT NOT NULL,
+    model TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ENVIRONMENT VARIABLES (.env.example)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GROQ_API_KEY=your_groq_api_key_here
+
+DB_PATH=./browser_agent.db
+
+SCREENSHOTS_DIR=./screenshots
+
+REPORTS_DIR=./reports
+
+LLM_CACHE_DIR=./llm_cache
+
+GROQ_SMART_MODEL=llama-3.3-70b-versatile
+
+GROQ_FAST_MODEL=llama-3.1-8b-instant
+
+MAX_LLM_RETRIES=3
+
+LOCATOR_TIMEOUT_MS=3000
+
+NAVIGATION_TIMEOUT_MS=10000
+
+PARALLEL_TESTS=4
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT 1: assets/event_capture.js
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This JavaScript file is injected into every page during recording.
+It must capture the following and store them in window.__capturedEvents:
+
+Events to capture: click, input, change, submit
+
+For each event, capture:
+- event_type (string)
+- timestamp (Date.now())
+- tag (e.target.tagName)
+- type_attr (e.target.type or null)
+- id (e.target.id or null)
+- name (e.target.name or null)
+- placeholder (e.target.placeholder or null)
+- aria_label (e.target.getAttribute('aria-label') or null)
+- role (e.target.getAttribute('role') or null)
+- text_content (e.target.innerText or e.target.value, max 200 chars)
+- value (e.target.value for inputs, null otherwise)
+- classes (e.target.className split into array, max 5 classes)
+
+All listeners must use capture:true (third argument to addEventListener).
+Initialize window.__capturedEvents = [] before adding listeners.
+Do not throw errors — wrap everything in try/catch.
+Prevent duplicate listener attachment by checking window.__listenersAttached.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT 2: core/recorder.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This is the recording engine. Implement an async class BrowserRecorder.
+
+Constructor takes: start_url (str), app_name (str), screenshots_dir (str)
+
+Methods to implement:
+
+async start_session():
+  - Launch Playwright Chromium browser (headful, headless=False)
+  - Create a new context and page
+  - Navigate to start_url
+  - Inject event_capture.js via page.evaluate() after each page load
+  - Set up these Playwright event hooks on the page:
+      page.on('framenavigated', self._on_navigate)
+      page.on('dialog', self._on_dialog)
+      page.on('request', self._on_request)
+  - Start polling loop: every 500ms, call 
+    page.evaluate("return window.__capturedEvents || []") 
+    and drain into self._event_buffer
+    then call page.evaluate("window.__capturedEvents = []") to clear
+
+async _on_navigate(frame):
+  - Only process main frame navigations
+  - Capture: current URL, page title
+  - Capture accessibility snapshot: await page.accessibility.snapshot()
+  - Take screenshot (use utils/screenshots.py)
+  - Store all of above as a NavigationEvent in self._navigation_log
+
+async _on_dialog(dialog):
+  - Log the dialog type and message
+  - Auto-dismiss: await dialog.dismiss()
+
+async _on_request(request):
+  - Log: method, url (only if it contains /api/ to reduce noise)
+
+async stop_session():
+  - Stop the polling loop
+  - Close browser
+  - Return a dict: {
+      "events": self._event_buffer,
+      "navigations": self._navigation_log,
+      "app_name": self.app_name,
+      "start_url": self.start_url,
+      "recorded_at": ISO timestamp
+    }
+
+async save_session(output_path: str):
+  - Call stop_session()
+  - Write returned dict to output_path as formatted JSON
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT 3: llm/cache.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement a disk-based cache backed by the llm_cache SQLite table.
+
+class LLMCache:
+  async get(input_hash: str) -> str | None
+  async set(input_hash: str, response: str, model: str) -> None
+
+The input_hash is: sha256(model + prompt).hexdigest()
+
+Use the same SQLite DB connection as storage/db.py.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT 4: llm/client.py  ← GROQ IMPLEMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use the groq Python library (AsyncGroq). Do NOT use the anthropic 
+or openai libraries.
+
+Implement class LLMClient exactly as follows:
+
+```python
+import os
+import json
+import hashlib
+from groq import AsyncGroq
+import groq as groq_module
+from tenacity import (
+    retry, stop_after_attempt,
+    wait_exponential, retry_if_exception_type
+)
+from llm.cache import LLMCache
+
+class LLMClient:
+    def __init__(self):
+        self.client = AsyncGroq(api_key=os.environ.get("GROQ_API_KEY"))
+        self.smart_model = os.environ.get(
+            "GROQ_SMART_MODEL", "llama-3.3-70b-versatile"
+        )
+        self.fast_model = os.environ.get(
+            "GROQ_FAST_MODEL", "llama-3.1-8b-instant"
+        )
+        self.cache = LLMCache()
+
+    async def generate(
+        self,
+        prompt: str,
+        model: str = "haiku",   # accepts "haiku" (fast) or "sonnet" (smart)
+        expect_json: bool = True
+    ) -> dict | str:
+
+        # Map familiar names to actual Groq model strings
+        actual_model = (
+            self.fast_model if model == "haiku" else self.smart_model
+        )
+
+        # Check cache before calling API
+        input_hash = hashlib.sha256(
+            f"{actual_model}{prompt}".encode()
+        ).hexdigest()
+        cached = await self.cache.get(input_hash)
+        if cached:
+            return json.loads(cached) if expect_json else cached
+
+        # Call Groq API
+        response = await self._call_api(actual_model, prompt, expect_json)
+        text = response.choices[0].message.content.strip()
+
+        if expect_json:
+            text = self._strip_json_fences(text)
+            try:
+                result = json.loads(text)
+            except json.JSONDecodeError:
+                # Second attempt: ask the model to fix its own output
+                fix_prompt = (
+                    f"The following is not valid JSON. "
+                    f"Fix it and return ONLY valid JSON:\n{text}"
+                )
+                retry_response = await self._call_api(
+                    actual_model, fix_prompt, expect_json=True
+                )
+                text = self._strip_json_fences(
+                    retry_response.choices[0].message.content.strip()
+                )
+                result = json.loads(text)
+
+            await self.cache.set(input_hash, json.dumps(result), actual_model)
+            return result
+        else:
+            await self.cache.set(input_hash, text, actual_model)
+            return text
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type((
+            groq_module.RateLimitError,
+            groq_module.APIStatusError,
+            groq_module.APIConnectionError
+        ))
+    )
+    async def _call_api(self, model: str, prompt: str, expect_json: bool):
+        kwargs = dict(
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a precise assistant. "
+                        "When asked to return JSON, respond ONLY with "
+                        "valid JSON — no preamble, no explanation, "
+                        "no markdown code fences."
+                    )
+                },
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=2000,
+            temperature=0.1   # low temperature = more consistent JSON output
+        )
+        if expect_json:
+            kwargs["response_format"] = {"type": "json_object"}
+        return await self.client.chat.completions.create(**kwargs)
+
+    @staticmethod
+    def _strip_json_fences(text: str) -> str:
+        """Remove markdown code fences if the model includes them anyway."""
+        if text.startswith("```"):
+            lines = text.split("\n")
+            lines = [l for l in lines if not l.startswith("```")]
+            text = "\n".join(lines)
+        return text.strip()
+```
+
+IMPORTANT NOTES FOR THE AGENT:
+- response_format={"type": "json_object"} is supported by both 
+  llama-3.3-70b-versatile and llama-3.1-8b-instant on Groq.
+  Always pass it when expect_json=True — this is more reliable than 
+  prompting alone.
+- temperature=0.1 is intentional. Do not increase it. Higher 
+  temperatures cause inconsistent JSON structure.
+- The model parameter in generate() accepts "haiku" or "sonnet" 
+  to match the rest of the codebase. Do not change the interface.
+- Groq's free tier has rate limits (roughly 30 RPM on the 70B model,
+  6000 RPM on the 8B model). The tenacity retry handles RateLimitError
+  automatically with exponential backoff.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT 5: llm/prompts.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Define these exact prompt templates as module-level string constants.
+All prompts must instruct the model to return ONLY valid JSON with 
+no preamble and no markdown code fences.
+
+ELEMENT_LABEL_PROMPT:
+  Input placeholders: {tag}, {input_type}, {element_id}, {name}, 
+                      {placeholder}, {aria_label}, {text_content}
+  Task: Analyze this web element. Return JSON:
+  {
+    "semantic_label": "3-8 word descriptive label",
+    "purpose": "one sentence",
+    "validation_rules": [{"rule": "...", "typical_error": "..."}],
+    "locator_priority": ["aria_label", "placeholder", "id", "css"]
+  }
+
+FLOW_IDENTIFICATION_PROMPT:
+  Input placeholders: {steps_json}, {page_titles}
+  Task: Identify what user flow these steps represent. Return JSON:
+  {
+    "name": "flow name",
+    "description": "one paragraph",
+    "expected_outcome": {
+      "type": "navigation|element_visible|text_present",
+      "url_pattern": "...",
+      "text": "..."
+    }
+  }
+
+TEST_GENERATION_PROMPT:
+  Input placeholders: {flow_name}, {flow_steps_json}, {elements_json}, 
+                      {expected_outcome_json}
+  Task: Generate test cases for this flow. Return JSON:
+  {
+    "test_cases": [
+      {
+        "name": "...",
+        "category": "happy_path|negative|edge_case",
+        "steps": [{"sequence": 1, "action": "fill", 
+                   "element_id": "...", "value": "..."}],
+        "assertions": [{"type": "url_contains", "expected": "..."}],
+        "confidence": 0.0-1.0
+      }
+    ]
+  }
+  Generate: 1 happy_path, 3-5 negative, 2-3 edge_case tests.
+
+LOCATOR_FALLBACK_PROMPT:
+  Input placeholders: {semantic_label}, {accessibility_tree_json}
+  Task: Find the element described as "{semantic_label}" in this 
+  accessibility tree. Return the single best Playwright locator. JSON:
+  {
+    "strategy": "role|text|label|placeholder|css",
+    "value": "...",
+    "role_name": "..."  (only if strategy is "role")
+  }
+
+FAILURE_DIAGNOSIS_PROMPT:
+  Input placeholders: {test_name}, {failed_step}, {error_message}, 
+                      {current_url}, {expected_outcome}
+  Task: Explain this test failure in plain English for a developer.
+  Return JSON:
+  {
+    "likely_cause": "one sentence",
+    "category": "locator_changed|element_removed|assertion_wrong|timing|bug",
+    "suggested_action": "what the developer should do next"
+  }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT 6: utils/locators.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement two functions:
+
+def generate_locators(element_attrs: dict) -> list[LocatorSpec]:
+  Given raw element attributes from the JS event capture, generate
+  a ranked list of LocatorSpec objects in this priority order:
+  1. aria_label  (confidence 0.95) — only if element_attrs["aria_label"]
+  2. placeholder (confidence 0.85) — only if element_attrs["placeholder"]
+  3. role+text   (confidence 0.80) — if button or link with text_content
+  4. id          (confidence 0.70) — only if id is not empty and not 
+                                     auto-generated (no UUIDs, no numbers only)
+  5. css_name    (confidence 0.55) — input[name="X"] or button[type="submit"]
+  6. xpath_text  (confidence 0.40) — //button[contains(text(),"X")]
+
+  An ID is "auto-generated" if it matches: r'^[0-9]+$' or 
+  r'^[a-f0-9]{8}-' or r'^react-' or r'^ember'
+
+async def resolve_locator(page, element: ElementModel, llm_client,
+                          timeout_ms: int = 3000) -> tuple[any, str]:
+  Try each locator in element.locators sorted by confidence descending.
+  For each locator:
+    - Build the Playwright locator using the strategy
+    - Try: await expect(loc).to_be_visible(timeout=timeout_ms)
+    - If visible: return (locator, locator_spec.strategy)
+    - If PlaywrightError: continue to next
+
+  If all fail:
+    - Get current accessibility tree: await page.accessibility.snapshot()
+    - Call llm_client with LOCATOR_FALLBACK_PROMPT
+    - Build locator from LLM response
+    - Return (locator, "llm_fallback")
+
+  If LLM fallback also fails: raise ElementNotFoundError
+
+For building Playwright locators from LocatorSpec:
+  "aria_label"  → page.get_by_label(value)
+  "placeholder" → page.get_by_placeholder(value)
+  "role"        → page.get_by_role(role, name=name)
+  "text"        → page.get_by_text(value, exact=False)
+  "id"          → page.locator(f"#{value}")
+  "css_name"    → page.locator(value)
+  "xpath_text"  → page.locator(value)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT 7: core/model_builder.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement class ModelBuilder with method:
+
+async build(session_data: dict, app_name: str,
+            db, llm_client) -> ApplicationModel:
+
+Steps:
+1. Create Application entry (uuid for id, app_name, base_url from session)
+2. Create AppVersion entry (label = f"v1_{date_today}")
+3. For each unique URL in session_data["navigations"]:
+   a. Create PageModel (uuid id, url_pattern from URL,
+      title from navigation, accessibility_snapshot)
+   b. For each element in session_data["events"] that matches this URL:
+      - Generate locators via utils/locators.generate_locators()
+      - Call LLM (model="haiku") with ELEMENT_LABEL_PROMPT
+      - Create ElementModel
+4. Group events into flows:
+   - A new flow starts at each navigation event
+   - Group all events between navigation N and navigation N+1 as one flow
+   - Call LLM (model="sonnet") with FLOW_IDENTIFICATION_PROMPT for each group
+   - Create UserFlow
+5. Assemble and return ApplicationModel
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT 8: core/test_generator.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement class TestGenerator with method:
+
+async generate(flow: UserFlow, elements: list[ElementModel],
+               llm_client) -> list[TestCase]:
+
+Steps:
+1. Build the happy_path test directly from flow.steps (no LLM needed)
+2. Call LLM (model="sonnet") with TEST_GENERATION_PROMPT
+   to get negative + edge case tests
+3. For each generated test case, create a TestCase object with uuid id
+4. Set confidence from LLM response
+5. Return all test cases
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT 9: core/executor.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement class TestExecutor.
+
+Constructor: takes db, llm_client, screenshots_dir, headless=True
+
+async run_suite(app_id: str) -> list[TestResult]:
+  - Load all test cases for app from DB
+  - Create TestRun entry in DB
+  - Run tests (up to PARALLEL_TESTS in parallel using asyncio.gather)
+  - Update TestRun totals
+  - Return list of TestResult
+
+async run_test(test_case: TestCase, elements: dict[str, ElementModel],
+               run_id: str) -> TestResult:
+  - Launch browser context (reuse across tests with context pool)
+  - Navigate to flow start_url
+  - For each step:
+      a. If action is "navigate": await page.goto(url)
+      b. Otherwise: resolve element locator, execute action
+      c. After action: wait for networkidle (timeout 10s)
+      d. Take screenshot via utils/screenshots.py
+      e. Append StepResult
+  - Call verifier.evaluate_assertions(page, test_case.assertions)
+  - Build and return TestResult
+
+Action execution rules:
+  "fill"     → await locator.fill(value)
+  "click"    → await locator.click()
+  "check"    → await locator.check()
+  "select"   → await locator.select_option(value)
+  "hover"    → await locator.hover()
+  "clear"    → await locator.clear()
+  "navigate" → await page.goto(step.url)
+
+Error handling:
+  - If ElementNotFoundError: StepResult status="failed", continue to next test
+  - If any other PlaywrightError: StepResult status="errored", continue
+  - Never raise from run_test — always return a TestResult
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT 10: core/verifier.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement:
+
+async def evaluate_assertions(page, assertions: list[Assertion]) -> list[dict]:
+  For each assertion return: {"type": ..., "expected": ...,
+                              "actual": ..., "passed": bool}
+
+  Assertion types:
+  "url_contains"    → check if expected string in page.url
+  "element_visible" → await page.get_by_text(expected).is_visible()
+                      or locate by label
+  "text_equals"     → await page.locator(selector).text_content() == expected
+  "element_count"   → await page.locator(selector).count() == int(expected)
+  "element_absent"  → not await page.get_by_text(expected).is_visible()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT 11: storage/db.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement class Database.
+
+Constructor: takes db_path (str). On init, run schema.sql to create tables.
+
+All methods must be async (use aiosqlite).
+All complex fields (lists, dicts) serialized to JSON string when writing,
+deserialized from JSON string when reading.
+
+Required methods:
+  async save_application(app: ApplicationModel) -> None
+  async get_application(app_id: str) -> ApplicationModel | None
+  async get_application_by_name(name: str) -> ApplicationModel | None
+  async list_applications() -> list[dict]
+  async save_version(version: AppVersion) -> None
+  async set_active_version(app_id: str, version_id: str) -> None
+  async get_active_version(app_id: str) -> AppVersion | None
+  async list_versions(app_id: str) -> list[AppVersion]
+  async save_page(page: PageModel) -> None
+  async save_element(element: ElementModel) -> None
+  async get_elements_for_page(page_id: str) -> list[ElementModel]
+  async get_element(element_id: str) -> ElementModel | None
+  async save_flow(flow: UserFlow) -> None
+  async get_flows_for_version(version_id: str) -> list[UserFlow]
+  async save_test_case(tc: TestCase) -> None
+  async get_test_cases_for_app(app_id: str) -> list[TestCase]
+  async save_test_run(run: dict) -> str  (returns run_id)
+  async update_test_run(run_id: str, **kwargs) -> None
+  async save_test_result(result: TestResult) -> None
+  async get_results_for_run(run_id: str) -> list[TestResult]
+  async get_last_run(app_id: str) -> dict | None
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT 12: storage/diff.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implement:
+
+def diff_models(old: ApplicationModel, new: ApplicationModel) -> dict:
+  Returns:
+  {
+    "new_pages": [...],
+    "removed_pages": [...],
+    "new_elements": [{"page": ..., "label": ...}],
+    "removed_elements": [...],
+    "changed_elements": [{"label": ..., "changes": [...]}],
+    "new_flows": [...],
+    "removed_flows": [...],
+    "changed_flows": [...]
+  }
+
+Match pages by url_pattern, elements by semantic_label,
+flows by name. If semantic label changed, treat as new+removed pair.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT 13: reporting/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+html_reporter.py:
+  async def generate_html_report(run_id: str, results: list[TestResult],
+                                  db, output_path: str) -> None
+  Use Jinja2 to render reporting/templates/report.html
+  Embed failure screenshots as base64 inline images
+  Include: run summary (total/passed/failed/errored/duration),
+           per-test accordion with step-by-step results,
+           failure diagnosis text from LLM
+
+json_reporter.py:
+  def generate_json_report(run_id: str, results: list[TestResult],
+                            output_path: str) -> None
+  Output structure:
+  {
+    "run_id": "...",
+    "app": "...",
+    "summary": {"total": N, "passed": N, "failed": N, "errored": N},
+    "duration_seconds": N,
+    "test_results": [...]
+  }
+
+reporting/templates/report.html:
+  A clean, self-contained HTML file (no external CDN dependencies).
+  Use inline CSS for styling. Dark/light sidebar with test list,
+  main panel showing selected test details with steps and screenshots.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENT 14: cli.py — ALL CLI COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use Click for all commands. Use Rich for progress bars, tables, and
+styled terminal output. All commands must be async (use asyncio.run()).
+
+Commands to implement:
+
+learn:
+  python agent.py learn --app NAME --url URL
+  - Creates BrowserRecorder, opens visible browser at URL
+  - Shows: "🎥 Recording started. Use the app normally. Press Ctrl+C when done."
+  - On Ctrl+C: stops session, saves raw session JSON
+  - Runs ModelBuilder.build() with Rich spinner: "🧠 Analyzing session..."
+  - Saves ApplicationModel to DB
+  - Runs TestGenerator for each flow with spinner: "📝 Generating test cases..."
+  - Saves all TestCases to DB
+  - Prints summary table: pages found, elements, flows, test cases generated
+
+test:
+  python agent.py test --app NAME [--headless] [--suite CATEGORY]
+  - Loads app from DB, runs TestExecutor.run_suite()
+  - Shows Rich progress bar: "Running test N of M: [test name]"
+  - After completion: prints summary table (passed/failed/errored/duration)
+  - Generates HTML + JSON reports
+  - Prints report file paths
+
+relearn:
+  python agent.py relearn --app NAME
+  - Same as learn but creates a new version
+  - After build: runs diff_models() between old and new version
+  - Prints diff table to terminal
+  - Asks: "Mark new version as active? [y/N]"
+  - If yes: sets new version active, regenerates test cases
+
+report:
+  python agent.py report --app NAME [--run RUN_ID]
+  - Opens the HTML report for the specified run (or last run)
+  - Use subprocess to open in default browser
+
+diff:
+  python agent.py diff --app NAME --v1 V1_LABEL --v2 V2_LABEL
+  - Loads both versions, runs diff_models()
+  - Prints structured diff to terminal using Rich
+
+status:
+  python agent.py status
+  - Lists all registered apps in a Rich table:
+    Name | Base URL | Active Version | Last Run | Pass Rate
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMPLEMENTATION ORDER (FOLLOW THIS EXACTLY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build and verify each step before moving to the next.
+Do not proceed until the current step's verify passes.
+
+STEP 0 — PROJECT SETUP
+  Create all directories and __init__.py files.
+  Create requirements.txt with exactly these packages:
+
+    playwright==1.51.0
+    groq>=0.9.0
+    aiosqlite==0.20.0
+    click==8.1.8
+    rich==13.9.4
+    pydantic==2.10.6
+    jinja2==3.1.5
+    tenacity==9.0.0
+    python-dotenv==1.0.1
+
+  Create .env.example as specified above.
+  Run: pip install -r requirements.txt
+  Run: playwright install chromium
+
+  VERIFY:
+    python -c "
+    import playwright, groq, aiosqlite, click, rich, pydantic, jinja2, tenacity
+    print('All imports OK')
+    "
+  Must print "All imports OK" with no errors.
+
+STEP 1 — SCHEMAS AND DATABASE
+  Create schema.py with all Pydantic models.
+  Create storage/schema.sql.
+  Create storage/db.py.
+
+  VERIFY:
+    python -c "
+    import asyncio, aiosqlite
+    from storage.db import Database
+    async def test():
+        db = Database('./test.db')
+        await db.initialize()
+        print('DB OK')
+    asyncio.run(test())
+    "
+
+STEP 2 — LLM CLIENT
+  Create llm/cache.py.
+  Create llm/prompts.py.
+  Create llm/client.py (Groq implementation as specified above).
+
+  VERIFY:
+    python -c "
+    import asyncio
+    from llm.client import LLMClient
+    async def test():
+        client = LLMClient()
+        result = await client.generate(
+            'Return a JSON object with a single key called status '
+            'and value ok.',
+            model='haiku',
+            expect_json=True
+        )
+        assert result.get('status') == 'ok', f'Unexpected result: {result}'
+        print('LLM OK:', result)
+    asyncio.run(test())
+    "
+  Must print "LLM OK: {'status': 'ok'}" with no errors.
+  Check the Groq dashboard to confirm the API call was logged.
+
+STEP 3 — EVENT CAPTURE AND RECORDER
+  Create assets/event_capture.js.
+  Create utils/screenshots.py.
+  Create core/recorder.py.
+
+  VERIFY:
+    python -c "
+    import asyncio
+    from core.recorder import BrowserRecorder
+    async def test():
+        r = BrowserRecorder(
+            'https://the-internet.herokuapp.com/login',
+            'test_app',
+            './screenshots'
+        )
+        print('Browser will open. Fill the login form. Auto-closes in 20s.')
+        import signal
+        try:
+            await asyncio.wait_for(r.start_session(), timeout=20)
+        except asyncio.TimeoutError:
+            session = await r.stop_session()
+            print(f'Events captured: {len(session[\"events\"])}')
+            print(f'Navigations: {len(session[\"navigations\"])}')
+            assert len(session['events']) > 0, 'No events captured!'
+            print('Recorder OK')
+    asyncio.run(test())
+    "
+  Must show event count > 0. Open the saved session JSON and 
+  manually confirm your clicks/inputs appear in the events array.
+
+STEP 4 — LOCATORS AND MODEL BUILDER
+  Create utils/locators.py.
+  Create core/model_builder.py.
+
+  VERIFY:
+  - Run a short recording on https://the-internet.herokuapp.com/login
+  - Save session to session_test.json
+  - Run ModelBuilder.build() on that session
+  - Print resulting ApplicationModel summary
+  Must show: at least 1 page, at least 2 elements (username + password),
+  at least 1 flow with a meaningful LLM-generated name (not "flow_1").
+
+STEP 5 — TEST GENERATOR
+  Create core/test_generator.py.
+
+  VERIFY:
+  - Use the ApplicationModel from Step 4
+  - Run TestGenerator.generate() for the login flow
+  - Print all generated test cases
+  Must produce: exactly 1 happy_path, at least 3 negative cases.
+  Read each test case. The negative cases must make logical sense
+  (empty fields, wrong password format, etc.) — not generic placeholders.
+
+STEP 6 — EXECUTOR AND VERIFIER
+  Create core/verifier.py.
+  Create core/executor.py.
+
+  VERIFY:
+  - Set headless=False temporarily so you can watch the browser
+  - Execute the happy_path test case from Step 5 against
+    https://the-internet.herokuapp.com/login
+  - Watch the browser fill the form and click login by itself
+  - Must result in status="passed" with URL containing "/secure"
+
+STEP 7 — REPORTING
+  Create reporting/templates/report.html.
+  Create reporting/html_reporter.py.
+  Create reporting/json_reporter.py.
+
+  VERIFY:
+  - Generate report from the Step 6 test run
+  - Open report.html in a browser
+  - Must show: test name, pass/fail status, step-by-step results,
+    at least one screenshot
+
+STEP 8 — FULL STORAGE INTEGRATION
+  Verify the complete data round-trip:
+  Record → ModelBuilder → save to DB → load from DB → 
+  execute tests → save results → generate report
+
+  VERIFY:
+    python -c "
+    import asyncio
+    from storage.db import Database
+    from schema import ApplicationModel
+    async def test():
+        db = Database('./browser_agent.db')
+        apps = await db.list_applications()
+        print(f'Apps in DB: {len(apps)}')
+        for app in apps:
+            print(f'  - {app[\"name\"]} | {app[\"base_url\"]}')
+        print('Storage OK')
+    asyncio.run(test())
+    "
+
+STEP 9 — CLI
+  Create cli.py with all commands.
+  Verify each command individually:
+
+    python agent.py learn --app testapp \
+      --url https://the-internet.herokuapp.com/login
+    python agent.py status
+    python agent.py test --app testapp
+    python agent.py report --app testapp
+    python agent.py relearn --app testapp
+
+STEP 10 — END-TO-END INTEGRATION TEST
+  Run this complete workflow and verify every output:
+
+  1. python agent.py learn --app saucedemo \
+       --url https://www.saucedemo.com
+     VERIFY: Session recorded, elements labeled, test cases generated,
+     summary table printed with correct counts
+
+  2. python agent.py test --app saucedemo
+     VERIFY: Progress bar shown, each test result printed,
+     summary shows total/passed/failed
+
+  3. python agent.py report --app saucedemo
+     VERIFY: HTML report opens in browser, shows results with screenshots,
+     failure screenshots embedded inline
+
+  4. python agent.py relearn --app saucedemo
+     VERIFY: New version created, diff table shown,
+     new version activates on confirmation
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+KNOWN LIMITATIONS — DO NOT ATTEMPT TO SOLVE THESE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Do not add code to handle these — they are out of scope for this version:
+- CAPTCHA (reCAPTCHA, hCaptcha) — document as unsupported
+- SMS/email OTP flows in production — document as unsupported
+- Cross-origin iframes (Stripe, Google Maps embeds) — document as unsupported
+- Canvas or WebGL-based UI elements — document as unsupported
+- Mobile browser emulation — out of scope
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+README.md — WRITE THIS LAST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The README must cover:
+1. What this tool does (2 paragraphs, plain English)
+2. Prerequisites (Python 3.11+, Chromium, Groq API key — free at console.groq.com)
+3. Setup (clone, pip install, playwright install, .env config)
+4. How to use: learn, test, relearn, report, diff, status commands
+   with exact example commands
+5. How it works (the Learn → Test cycle explained simply)
+6. Known limitations
+7. Project structure table
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ARTIFACTS TO PRODUCE (REQUIRED)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Produce the following Antigravity Artifacts before marking
+this mission complete:
+
+1. IMPLEMENTATION PLAN — Task list with all 10 steps, each with
+   status (pending/in-progress/done)
+
+2. ARCHITECTURE DIAGRAM — Browser rendering of the component
+   diagram showing all modules and connections
+
+3. LEARN PHASE RECORDING — Browser recording of a complete learn
+   session on https://the-internet.herokuapp.com/login
+
+4. TEST EXECUTION RECORDING — Browser recording of test suite
+   executing autonomously on the same URL
+
+5. FINAL TEST REPORT — Screenshot of the generated HTML report
+   showing at least 1 passed and 1 failed test case
+
+6. TERMINAL OUTPUT — Screenshot of 'python agent.py status' showing
+   the registered app with version and pass rate
