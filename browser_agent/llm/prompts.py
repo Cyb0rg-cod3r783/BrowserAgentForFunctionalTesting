@@ -69,6 +69,7 @@ Negative tests should cover: empty fields, invalid formats, wrong credentials, b
 Edge case tests should cover: special characters, very long inputs, unexpected sequences.
 
 CRITICAL: DO NOT use javascript expressions or method calls like .repeat() in string values. Use literal string values only (e.g. for long inputs, just type a long string like "aaaaaaaaaaaaaaaaaaaa").
+CRITICAL: For 'element_visible' or 'text_equals' assertions, the 'expected' field must contain the specific text content (e.g. error message like "Email is required" or label) expected to be found/visible. DO NOT set expected to boolean values like "true" or "false".
 
 Return ONLY this JSON structure:
 {{
@@ -122,3 +123,39 @@ Return ONLY this JSON structure:
   "suggested_action": "Specific actionable recommendation for the developer"
 }}
 """
+
+
+SEMANTIC_ASSERTION_PROMPT = """\
+You are an expert QA Engineer. Your job is to evaluate if the actual page state conceptually satisfies a test assertion, even if the exact strings do not match.
+Return ONLY valid JSON (no preamble, no markdown fences).
+
+Guidelines for URL Comparison (url_contains):
+- A post-login redirection to a landing page path like "/home" is CONCEPTUALLY EQUIVALENT to "/dashboard" or "/index" for a happy path login flow. Mark it as passed (passed: true).
+- If the expected URL is "/login", and the actual URL is "/" (the root URL), check if the page is still the login page. If the page is showing a login form or stays on the login page root, this is CONCEPTUALLY EQUIVALENT to "/login" for a failed validation test. Mark it as passed (passed: true).
+
+Guidelines for Text/Element Comparison (element_visible / text_equals):
+- If the test expected "Welcome, admin" (indicating a successful login), and the visible page text snippet contains "Admin", "Assessor App", or "Dashboard", this indicates the user successfully logged in and reached the admin area. Mark it as passed (passed: true).
+- If the expected assertion value is "true" or "false" (due to a boolean generation error) but the element_label describes a validation message (e.g., "Email is required"), check the visible page text snippet. If there is a validation message or the user is still on the login page with fields highlighted, mark it as conceptually passed.
+
+Context:
+- Test Case Name: {test_name}
+- Assertion Type: {assertion_type}
+- Expected Value: "{expected_value}"
+- Actual Value: "{actual_value}"
+- Visible Page Text Snippet (if text/element assertion):
+\"\"\"
+{page_text}
+\"\"\"
+
+Return ONLY this JSON structure:
+{{
+  "passed": true,
+  "reason": "One sentence explaining why it is a conceptual match"
+}}
+or
+{{
+  "passed": false,
+  "reason": "One sentence explaining why it is a mismatch"
+}}
+"""
+

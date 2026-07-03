@@ -54,53 +54,53 @@ def learn(app: str, url: str):
 
 
 async def _learn(app_name: str, url: str):
-    from core.recorder import BrowserRecorder
+    from core.codegen_recorder import CodegenRecorder
+    from core.codegen_parser import parse_playwright_js
     from core.model_builder import ModelBuilder
     from core.test_generator import TestGenerator
 
-    screenshots_dir = os.environ.get("SCREENSHOTS_DIR", "./screenshots")
     db = _get_db()
     await db.initialize()
-
     llm = _get_llm()
 
-    # Start recording
     console.print(Panel(
-        f"[bold green]🎥 Recording started.[/bold green]\n"
+        f"[bold green]🎥 Playwright Codegen Recording[/bold green]\n"
         f"[dim]URL:[/dim] {url}\n"
         f"[dim]App:[/dim] {app_name}\n\n"
-        "[yellow]Use the app normally. Press Ctrl+C when done.[/yellow]",
+        "[yellow]A Chromium window will open. Interact with the app normally.\n"
+        "Close the browser window when you are done recording.[/yellow]",
         title="Browser Agent — LEARN Mode",
         border_style="green"
     ))
 
-    recorder = BrowserRecorder(url, app_name, screenshots_dir)
+    # Launch playwright codegen and wait for user to finish
+    recorder = CodegenRecorder(url, app_name)
+    js_code = await recorder.record()
 
-    session_data = None
-    try:
-        await asyncio.wait_for(recorder.start_session(), timeout=3600)
-    except (KeyboardInterrupt, asyncio.CancelledError, asyncio.TimeoutError):
-        pass
-    finally:
-        with console.status("[yellow]Saving session..."):
-            session_data = await recorder.stop_session()
-
-    events_count = len(session_data.get("events", []))
-    nav_count = len(session_data.get("navigations", []))
-    console.print(f"\n[green]✅ Session recorded[/green] — {events_count} events, {nav_count} navigations")
-
-    if events_count == 0 and nav_count == 0:
-        console.print("[red]❌ No events captured. Make sure you interacted with the page.[/red]")
+    if not js_code.strip():
+        console.print("[red]❌ No actions were captured. Did you close the browser without interacting?[/red]")
         return
 
-    # Analyze with LLM
-    with console.status("[bold cyan]🧠 Analyzing session..."):
+    # Parse the generated JS into structured steps
+    parsed_steps = parse_playwright_js(js_code)
+    action_steps = [s for s in parsed_steps if s["step_type"] == "action"]
+    nav_steps = [s for s in parsed_steps if s["step_type"] == "navigate"]
+
+    console.print(f"\n[green]✅ Recording complete[/green] — {len(action_steps)} actions, {len(nav_steps)} navigations")
+
+    if not action_steps:
+        console.print("[red]❌ No actions detected in the recording. Please interact with the page before closing.[/red]")
+        return
+
+    # Build the ApplicationModel from codegen steps
+    with console.status("[bold cyan]🧠 Analyzing recording with LLM..."):
         try:
             builder = ModelBuilder()
-            app_model = await builder.build(session_data, app_name, db, llm)
+            app_model = await builder.build_from_codegen(parsed_steps, app_name, db, llm)
         except Exception as e:
             console.print(f"[red]❌ Model building failed: {e}[/red]")
             raise
+
 
     console.print(f"[green]✅ Application model built[/green]")
 

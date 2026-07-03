@@ -4,7 +4,7 @@ core/model_builder.py — Converts raw session events into structured Applicatio
 import json
 import re
 import uuid
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 from schema import (
     ApplicationModel, AppVersion, PageModel, ElementModel,
@@ -35,11 +35,15 @@ class ModelBuilder:
             Complete ApplicationModel
         """
         base_url = session_data.get("start_url", "")
-        events = session_data.get("events", [])
+        events = self._preprocess_events(session_data.get("events", []))
         navigations = session_data.get("navigations", [])
 
         # 1. Create Application entry
-        app_id = str(uuid.uuid4())
+        existing_app = await db.get_application_by_name(app_name)
+        if existing_app:
+            app_id = existing_app.id
+        else:
+            app_id = str(uuid.uuid4())
 
         # 2. Create AppVersion entry
         today = date.today().isoformat()
@@ -168,32 +172,24 @@ class ModelBuilder:
                 )
                 elements.append(element)
 
-        # 5. Group events into flows
+        # 5. Group ALL events into a single End-to-End flow
         flows: list[UserFlow] = []
-        for i, nav in enumerate(navigations):
-            nav_url = nav.get("url", "")
-            nav_time = nav.get("timestamp")
-            next_nav_time = navigations[i + 1].get("timestamp") if i + 1 < len(navigations) else None
-
-            flow_events = self._events_for_page(events, nav_time, next_nav_time)
-            if not flow_events:
-                continue
-
-            page = url_to_page.get(nav_url)
+        if events:
+            start_url = navigations[0].get("url", base_url) if navigations else base_url
             page_titles = list({n.get("title", "") for n in navigations if n.get("title")})
 
-            # Call LLM for flow identification
+            # Call LLM for flow identification (using up to 100 events to ensure we capture long flows)
             flow_result = await llm_client.generate(
                 FLOW_IDENTIFICATION_PROMPT.format(
-                    steps_json=json.dumps(flow_events[:30], indent=2),
+                    steps_json=json.dumps(events[:100], indent=2),
                     page_titles=json.dumps(page_titles)
                 ),
                 model="sonnet",
                 expect_json=True
             )
 
-            # Convert flow events to FlowStep objects
-            flow_steps = self._events_to_flow_steps(flow_events, elements, page)
+            # Convert all events to FlowStep objects (pass None for page to allow matching across all pages)
+            flow_steps = self._events_to_flow_steps(events, elements, None)
 
             expected_outcome_raw = flow_result.get("expected_outcome", {})
             expected_outcome = ExpectedOutcome(
@@ -202,18 +198,18 @@ class ModelBuilder:
                 text=expected_outcome_raw.get("text")
             )
 
-            # Determine next URL as expected navigation target
-            if i + 1 < len(navigations):
-                next_url = navigations[i + 1].get("url", "")
-                if next_url and not expected_outcome.url_pattern:
-                    expected_outcome.url_pattern = self._url_to_pattern(next_url, base_url)
+            # Determine next URL as expected navigation target based on the last navigation
+            if len(navigations) > 1:
+                last_url = navigations[-1].get("url", "")
+                if last_url and not expected_outcome.url_pattern:
+                    expected_outcome.url_pattern = self._url_to_pattern(last_url, base_url)
 
             flow = UserFlow(
                 id=str(uuid.uuid4()),
                 version_id=version.id,
-                name=flow_result.get("name", f"Flow {i + 1}"),
-                description=flow_result.get("description", ""),
-                start_url=nav_url,
+                name=flow_result.get("name", "End-to-End User Journey"),
+                description=flow_result.get("description", "Complete recorded session flow"),
+                start_url=start_url,
                 steps=flow_steps,
                 expected_outcome=expected_outcome
             )
@@ -233,6 +229,9 @@ class ModelBuilder:
         # Persist to DB
         await db.save_application(app)
         await db.save_version(version)
+        if existing_app:
+            await db.set_active_version(app_id, version.id)
+            
         for page in pages:
             await db.save_page(page)
         for element in elements:
@@ -241,6 +240,378 @@ class ModelBuilder:
             await db.save_flow(flow)
 
         return app
+
+    # ─── Codegen-based build path ─────────────────────────────────────────────
+
+    async def build_from_codegen(
+        self,
+        parsed_steps: list[dict],
+        app_name: str,
+        db,
+        llm_client
+    ) -> "ApplicationModel":
+        """
+        Build a complete ApplicationModel from parsed Playwright codegen steps.
+
+        This is the preferred path when recording via 'playwright codegen'
+        because the locators it produces (getByRole, getByText, getByLabel) are
+        significantly more resilient than those generated from raw HTML events.
+
+        Args:
+            parsed_steps: Output of core.codegen_parser.parse_playwright_js()
+            app_name:     Name of the application being modeled
+            db:           Database instance for persistence
+            llm_client:   LLMClient for semantic labeling and flow analysis
+
+        Returns:
+            Complete ApplicationModel (also persisted to the database)
+        """
+        # 1. Create / reuse Application entry
+        existing_app = await db.get_application_by_name(app_name)
+        app_id = existing_app.id if existing_app else str(uuid.uuid4())
+
+        # Derive base URL from the first navigate step
+        base_url = ""
+        for step in parsed_steps:
+            if step["step_type"] == "navigate":
+                base_url = step["url"]
+                break
+
+        # 2. Create AppVersion entry
+        today = date.today().isoformat()
+        version = AppVersion(
+            id=str(uuid.uuid4()),
+            app_id=app_id,
+            label=f"v1_{today}",
+            created_at=datetime.utcnow(),
+            is_active=True
+        )
+
+        # 3. Build pages from navigate steps (deduplicated by URL)
+        pages: list[PageModel] = []
+        url_to_page: dict[str, PageModel] = {}
+
+        for step in parsed_steps:
+            if step["step_type"] != "navigate":
+                continue
+            url = step["url"]
+            if url in url_to_page:
+                continue
+            url_pattern = self._url_to_pattern(url, base_url)
+            page = PageModel(
+                id=str(uuid.uuid4()),
+                version_id=version.id,
+                url_pattern=url_pattern,
+                title="",
+                purpose="",
+                accessibility_snapshot={}
+            )
+            pages.append(page)
+            url_to_page[url] = page
+
+        # 4. Build elements from action steps
+        elements: list[ElementModel] = []
+        # Key used to deduplicate: (locator_type, primary_value, nth)
+        seen_elem_keys: set[str] = set()
+
+        current_url = base_url
+        for step in parsed_steps:
+            if step["step_type"] == "navigate":
+                current_url = step["url"]
+                continue
+
+            # Skip non-interactable actions
+            if step.get("action") in ("press",):
+                continue
+
+            page_obj = url_to_page.get(current_url)
+            if not page_obj:
+                # Create a catch-all page if needed
+                if current_url not in url_to_page:
+                    url_pattern = self._url_to_pattern(current_url, base_url)
+                    page_obj = PageModel(
+                        id=str(uuid.uuid4()),
+                        version_id=version.id,
+                        url_pattern=url_pattern,
+                        title="",
+                        purpose="",
+                        accessibility_snapshot={}
+                    )
+                    pages.append(page_obj)
+                    url_to_page[current_url] = page_obj
+
+            page_obj = url_to_page[current_url]
+
+            locators, element_type = self._codegen_step_to_locators(step)
+            if not locators:
+                continue
+
+            # Dedup key: locator_type + primary value + nth
+            elem_key = self._codegen_step_key(step)
+            if elem_key in seen_elem_keys:
+                # Update observed_values on existing element
+                for elem in elements:
+                    if self._codegen_step_matches_element(elem, step) and step.get("value"):
+                        if step["value"] not in elem.observed_values:
+                            elem.observed_values.append(step["value"])
+                continue
+            seen_elem_keys.add(elem_key)
+
+            # Ask LLM for semantic label + validation rules
+            display_name = step.get("name") or step.get("text") or step.get("selector") or ""
+            role_name = step.get("role") or ""
+            tag = self._role_to_html_tag(role_name)
+            input_type = "text" if role_name == "textbox" else ""
+
+            label_result = await llm_client.generate(
+                ELEMENT_LABEL_PROMPT.format(
+                    tag=tag,
+                    input_type=input_type,
+                    element_id=step.get("selector", ""),
+                    name="",
+                    placeholder=display_name,
+                    aria_label=display_name,
+                    text_content=display_name
+                ),
+                model="haiku",
+                expect_json=True
+            )
+
+            semantic_label = label_result.get("semantic_label", display_name or elem_key)
+            validation_rules = []
+            for vr in label_result.get("validation_rules", []):
+                if isinstance(vr, dict):
+                    validation_rules.append(ValidationRule(
+                        rule=vr.get("rule", ""),
+                        typical_error=vr.get("typical_error")
+                    ))
+
+            element = ElementModel(
+                id=str(uuid.uuid4()),
+                page_id=page_obj.id,
+                element_type=element_type,
+                semantic_label=semantic_label,
+                locators=locators,
+                validation_rules=validation_rules,
+                observed_values=[step["value"]] if step.get("value") else []
+            )
+            elements.append(element)
+
+        # 5. Build flow steps (mapping each action step to its element)
+        flow_steps: list[FlowStep] = []
+        sequence = 1
+        current_url = base_url
+
+        for step in parsed_steps:
+            if step["step_type"] == "navigate":
+                current_url = step["url"]
+                continue
+            if step.get("action") in ("press",):
+                continue
+
+            matched_element: ElementModel | None = None
+            for elem in elements:
+                if self._codegen_step_matches_element(elem, step):
+                    matched_element = elem
+                    break
+
+            if matched_element is None:
+                continue  # skip unresolvable steps
+
+            action = "fill" if step["action"] == "fill" else "click"
+            flow_steps.append(FlowStep(
+                sequence=sequence,
+                action=action,
+                element_id=matched_element.id,
+                value=step.get("value"),
+                url=None
+            ))
+            sequence += 1
+
+        # 6. Ask LLM to name/describe the overall flow
+        navigations_summary = [{"url": s["url"]} for s in parsed_steps if s["step_type"] == "navigate"]
+        page_titles = [p.title for p in pages if p.title]
+
+        flow_result = await llm_client.generate(
+            FLOW_IDENTIFICATION_PROMPT.format(
+                steps_json=json.dumps([
+                    {"action": s.get("action"), "locator_type": s.get("locator_type"),
+                     "name": s.get("name") or s.get("text") or s.get("selector", ""),
+                     "value": s.get("value")}
+                    for s in parsed_steps if s["step_type"] == "action"
+                ][:80], indent=2),
+                page_titles=json.dumps(page_titles)
+            ),
+            model="sonnet",
+            expect_json=True
+        )
+
+        expected_outcome_raw = flow_result.get("expected_outcome", {})
+        if not expected_outcome_raw.get("url_pattern") and navigations_summary:
+            expected_outcome_raw["url_pattern"] = self._url_to_pattern(
+                navigations_summary[-1]["url"], base_url
+            )
+
+        expected_outcome = ExpectedOutcome(
+            type=expected_outcome_raw.get("type", "navigation"),
+            url_pattern=expected_outcome_raw.get("url_pattern"),
+            text=expected_outcome_raw.get("text")
+        )
+
+        flows: list[UserFlow] = []
+        if flow_steps:
+            flow = UserFlow(
+                id=str(uuid.uuid4()),
+                version_id=version.id,
+                name=flow_result.get("name", "End-to-End User Journey"),
+                description=flow_result.get("description", "Complete recorded session flow"),
+                start_url=base_url,
+                steps=flow_steps,
+                expected_outcome=expected_outcome
+            )
+            flows.append(flow)
+
+        # 7. Assemble ApplicationModel and persist
+        app = ApplicationModel(
+            id=app_id,
+            name=app_name,
+            base_url=base_url,
+            version=version,
+            pages=pages,
+            elements=elements,
+            flows=flows
+        )
+
+        await db.save_application(app)
+        await db.save_version(version)
+        if existing_app:
+            await db.set_active_version(app_id, version.id)
+        for page in pages:
+            await db.save_page(page)
+        for element in elements:
+            await db.save_element(element)
+        for flow in flows:
+            await db.save_flow(flow)
+
+        return app
+
+    # ─── Codegen helpers ──────────────────────────────────────────────────────
+
+    def _codegen_step_key(self, step: dict) -> str:
+        """Unique deduplication key for a codegen step (element identity)."""
+        lt = step.get("locator_type", "")
+        nth = str(step.get("nth", ""))
+        if lt == "role":
+            return f"role|{step.get('role')}|{step.get('name')}|{nth}"
+        elif lt in ("id", "css", "xpath"):
+            return f"{lt}|{step.get('selector')}|{nth}"
+        elif lt == "text":
+            return f"text|{step.get('text')}|{nth}"
+        elif lt in ("aria_label", "placeholder"):
+            return f"{lt}|{step.get('name')}|{nth}"
+        return f"unknown|{nth}"
+
+    def _codegen_step_to_locators(self, step: dict) -> tuple[list[LocatorSpec], str]:
+        """Convert a parsed codegen step to (locators, element_type)."""
+        locators: list[LocatorSpec] = []
+        element_type = "input"
+        lt = step.get("locator_type", "")
+        nth = step.get("nth")
+
+        if lt == "role":
+            role = step.get("role", "")
+            name = step.get("name", "")
+            if role == "textbox":
+                element_type = "input"
+                # Both aria_label and placeholder match textbox name
+                locators.append(LocatorSpec(strategy="aria_label", value=name, confidence=0.95))
+                locators.append(LocatorSpec(strategy="placeholder", value=name, confidence=0.85))
+            elif role == "button":
+                element_type = "button"
+                locators.append(LocatorSpec(strategy="role", value=f"button:{name}", confidence=0.90))
+            elif role == "link":
+                element_type = "link"
+                locators.append(LocatorSpec(strategy="role", value=f"link:{name}", confidence=0.90))
+            elif role == "checkbox":
+                element_type = "checkbox"
+                locators.append(LocatorSpec(strategy="aria_label", value=name, confidence=0.90))
+            elif role == "combobox":
+                element_type = "select"
+                locators.append(LocatorSpec(strategy="aria_label", value=name, confidence=0.90))
+            else:
+                locators.append(LocatorSpec(strategy="aria_label", value=name, confidence=0.80))
+
+        elif lt == "id":
+            element_type = "input"
+            locators.append(LocatorSpec(strategy="id", value=step["selector"], confidence=0.70))
+
+        elif lt in ("css", "xpath"):
+            locators.append(LocatorSpec(strategy="css_name", value=step["selector"], confidence=0.55))
+
+        elif lt == "text":
+            text = step.get("text", "")
+            safe_text = text[:50].replace('"', '\\"')
+            locators.append(LocatorSpec(
+                strategy="xpath_text",
+                value=f'//*[contains(text(),"{safe_text}")]',
+                confidence=0.40
+            ))
+            element_type = "link"
+
+        elif lt == "aria_label":
+            element_type = "input"
+            locators.append(LocatorSpec(strategy="aria_label", value=step.get("name", ""), confidence=0.95))
+
+        elif lt == "placeholder":
+            element_type = "input"
+            locators.append(LocatorSpec(strategy="placeholder", value=step.get("name", ""), confidence=0.85))
+
+        # If nth is set, store it so the executor can use .nth()
+        if nth is not None and locators:
+            for loc in locators:
+                loc.value = f"{loc.value}::nth={nth}"
+
+        return locators, element_type
+
+    def _codegen_step_matches_element(self, element: ElementModel, step: dict) -> bool:
+        """Check if an ElementModel was built from this codegen step (for flow step matching)."""
+        step_key = self._codegen_step_key(step)
+        lt = step.get("locator_type", "")
+        nth = step.get("nth")
+        nth_suffix = f"::nth={nth}" if nth is not None else ""
+
+        for loc in element.locators:
+            if lt == "role":
+                name = step.get("name", "")
+                role = step.get("role", "")
+                if loc.strategy == "aria_label" and loc.value == f"{name}{nth_suffix}":
+                    return True
+                if loc.strategy == "placeholder" and loc.value == f"{name}{nth_suffix}":
+                    return True
+                if loc.strategy == "role" and loc.value == f"{role}:{name}{nth_suffix}":
+                    return True
+            elif lt in ("id", "css", "xpath"):
+                selector = step.get("selector", "")
+                if loc.value == f"{selector}{nth_suffix}":
+                    return True
+            elif lt == "text":
+                text = step.get("text", "")
+                safe = text[:50].replace('"', '\\"')
+                if loc.strategy == "xpath_text" and f'contains(text(),"{safe}")' in loc.value:
+                    return True
+            elif lt in ("aria_label", "placeholder"):
+                name = step.get("name", "")
+                if loc.strategy in ("aria_label", "placeholder") and loc.value == f"{name}{nth_suffix}":
+                    return True
+        return False
+
+    def _role_to_html_tag(self, role: str) -> str:
+        """Map ARIA role to HTML tag name (for LLM prompt)."""
+        return {
+            "textbox": "input", "button": "button", "link": "a",
+            "checkbox": "input", "radio": "input", "combobox": "select",
+            "listbox": "select",
+        }.get(role, "input")
 
     def _url_to_pattern(self, url: str, base_url: str) -> str:
         """Convert a URL to a simple regex pattern."""
@@ -281,11 +652,17 @@ class ModelBuilder:
             # Try to compare; if parsing fails, include the event
             try:
                 if start_time:
-                    start_ms = datetime.fromisoformat(start_time).timestamp() * 1000
+                    dt = datetime.fromisoformat(start_time)
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    start_ms = dt.timestamp() * 1000
                     if ts < start_ms:
                         continue
                 if end_time:
-                    end_ms = datetime.fromisoformat(end_time).timestamp() * 1000
+                    dt = datetime.fromisoformat(end_time)
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    end_ms = dt.timestamp() * 1000
                     if ts > end_ms:
                         continue
                 result.append(event)
@@ -305,16 +682,34 @@ class ModelBuilder:
         return "|".join(parts)
 
     def _matches_event(self, element: ElementModel, event: dict) -> bool:
-        """Check if an element matches an event (for observed values tracking)."""
-        key = self._element_key(event)
-        # Rough match based on locators
+        """Check if an element matches an event by comparing all locator strategies."""
+        tag = (event.get("tag") or "").lower()
+        text_content = (event.get("text_content") or "").strip()
+        name = event.get("name") or ""
+
         for loc in element.locators:
+            # High-confidence direct attribute matches
             if loc.strategy == "id" and loc.value == (event.get("id") or ""):
                 return True
             if loc.strategy == "placeholder" and loc.value == (event.get("placeholder") or ""):
                 return True
             if loc.strategy == "aria_label" and loc.value == (event.get("aria_label") or ""):
                 return True
+            # Match by name attribute (css_name strategy stores e.g. 'input[name="email"]')
+            if loc.strategy == "css_name" and name and name in loc.value:
+                return True
+            # Match by role + text (e.g. 'button:Login' or 'link:Forgot Password')
+            if loc.strategy == "role" and text_content:
+                role_tag = "button" if tag == "button" else "link"
+                expected = f"{role_tag}:{text_content[:100]}"
+                if loc.value == expected:
+                    return True
+            # Match by xpath_text (e.g. //button[contains(text(),"Login")])
+            if loc.strategy == "xpath_text" and tag and text_content:
+                safe_text = text_content[:50].replace('"', '\\"')
+                expected_xpath = f'//{tag}[contains(text(),"{safe_text}")]'
+                if loc.value == expected_xpath:
+                    return True
         return False
 
     def _classify_element_type(self, event: dict) -> str:
@@ -346,7 +741,13 @@ class ModelBuilder:
         elements: list[ElementModel],
         page: PageModel | None
     ) -> list[FlowStep]:
-        """Convert raw events to FlowStep objects."""
+        """
+        Convert raw events to FlowStep objects.
+        Steps where no element can be matched (element_id would be null AND action is click)
+        are filtered out — they represent accidental clicks on blank space or structural
+        containers that have no testable effect. Keeping them causes the executor to silently
+        skip critical steps (like the Login button) and leave the browser stuck on the wrong page.
+        """
         steps: list[FlowStep] = []
         sequence = 1
 
@@ -355,7 +756,7 @@ class ModelBuilder:
             if event_type not in ("click", "input", "change", "submit"):
                 continue
 
-            # Find matching element
+            # Find matching element in the known elements database
             matched_element_id = None
             for elem in elements:
                 if page and elem.page_id != page.id:
@@ -371,6 +772,14 @@ class ModelBuilder:
             elif event_type == "submit":
                 action = "click"
 
+            # Filter out null-element CLICK steps — these are accidental clicks on
+            # structural containers (divs, spans) that were not captured as known elements.
+            # Keeping them causes critical steps (e.g., Login button) to be silently skipped
+            # and the test to fail because the browser never navigates to the next page.
+            # Fill steps with null element are also filtered since they cannot be executed.
+            if matched_element_id is None:
+                continue
+
             step = FlowStep(
                 sequence=sequence,
                 action=action,
@@ -382,3 +791,52 @@ class ModelBuilder:
             sequence += 1
 
         return steps
+
+    def _preprocess_events(self, events: list[dict]) -> list[dict]:
+        """
+        Preprocesses raw session events to merge consecutive typing,
+        combine clicks with typing on the same element, and ignore intermediate states.
+        """
+        preprocessed_events = []
+        current_fill_event = None
+        pending_click_event = None
+        
+        for event in events:
+            event_type = event.get("event_type")
+            elem_key = self._element_key(event)
+            
+            if event_type in ("input", "change"):
+                # If there was a pending click on a DIFFERENT element, commit it
+                if pending_click_event and self._element_key(pending_click_event) != elem_key:
+                    preprocessed_events.append(pending_click_event)
+                pending_click_event = None  # Discard click on same element
+                
+                if current_fill_event and self._element_key(current_fill_event) == elem_key:
+                    current_fill_event["value"] = event.get("value")
+                    current_fill_event["timestamp"] = event.get("timestamp")
+                    if event_type == "change":
+                        current_fill_event["event_type"] = "change"
+                else:
+                    if current_fill_event:
+                        preprocessed_events.append(current_fill_event)
+                    current_fill_event = dict(event)
+            else:
+                # Non-typing event
+                if current_fill_event:
+                    preprocessed_events.append(current_fill_event)
+                    current_fill_event = None
+                if pending_click_event:
+                    preprocessed_events.append(pending_click_event)
+                    pending_click_event = None
+                
+                if event_type == "click":
+                    pending_click_event = event
+                else:
+                    preprocessed_events.append(event)
+                    
+        if current_fill_event:
+            preprocessed_events.append(current_fill_event)
+        if pending_click_event:
+            preprocessed_events.append(pending_click_event)
+            
+        return preprocessed_events

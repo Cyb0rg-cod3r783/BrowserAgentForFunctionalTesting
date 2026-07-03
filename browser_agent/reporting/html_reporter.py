@@ -51,6 +51,25 @@ async def generate_html_report(
         "duration_s": total_duration_ms / 1000
     }
 
+    import aiosqlite
+    import json
+
+    # Pre-fetch all test case steps for this run's test cases
+    test_case_steps = {}
+    try:
+        async with aiosqlite.connect(db.db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            tc_ids = list(set(r.test_case_id for r in results))
+            for tc_id in tc_ids:
+                async with conn.execute("SELECT steps FROM test_cases WHERE id = ?", (tc_id,)) as cursor:
+                    row = await cursor.fetchone()
+                    if row:
+                        steps = json.loads(row["steps"])
+                        # Map sequence -> value
+                        test_case_steps[tc_id] = {s["sequence"]: s.get("value") for s in steps}
+    except Exception:
+        pass
+
     # Enrich results with base64 screenshots
     enriched_results = []
     for result in results:
@@ -63,11 +82,13 @@ async def generate_html_report(
                 result.failure_screenshot
             )
 
-        # Embed step screenshots
+        # Embed step screenshots and values
+        tc_steps = test_case_steps.get(result.test_case_id, {})
         for step in result_dict.get("step_results", []):
             step["screenshot_b64"] = ""
             if step.get("screenshot_path"):
                 step["screenshot_b64"] = screenshot_to_base64(step["screenshot_path"])
+            step["value"] = tc_steps.get(step["sequence"])
 
         # Add placeholder diagnosis (no LLM call here to keep it simple)
         result_dict["diagnosis"] = None

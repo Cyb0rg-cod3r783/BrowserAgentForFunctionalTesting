@@ -694,8 +694,8 @@
                             <td class="step-seq">{{ step.sequence }}</td>
                             <td><span class="step-action">{{ step.action }}</span></td>
                             <td style="font-size: 0.75rem; color: var(--text-secondary);">{{ step.element_label or '—' }}</td>
-                            <td style="font-size: 0.72rem; color: var(--text-muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                {{ step.locator_used or '—' }}
+                            <td style="font-size: 0.72rem; color: var(--text-muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ step.value or '—' }}">
+                                {{ step.value or '—' }}
                             </td>
                             <td style="font-size: 0.72rem; color: var(--text-muted);">{{ step.locator_used or '—' }}</td>
                             <td>

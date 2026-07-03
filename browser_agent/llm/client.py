@@ -23,7 +23,7 @@ class LLMClient:
     def __init__(self, db_path: str = "./browser_agent.db"):
         self.client = AsyncGroq(api_key=os.environ.get("GROQ_API_KEY"))
         self.smart_model = os.environ.get(
-            "GROQ_SMART_MODEL", "llama-3.3-70b-versatile"
+            "GROQ_SMART_MODEL", "qwen/qwen3-32b"
         )
         self.fast_model = os.environ.get(
             "GROQ_FAST_MODEL", "llama-3.1-8b-instant"
@@ -102,7 +102,7 @@ class LLMClient:
                 },
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=2000,
+            max_tokens=4096,
             temperature=0.1   # low temperature = more consistent JSON output
         )
         if expect_json:

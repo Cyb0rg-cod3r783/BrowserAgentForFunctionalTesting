@@ -1,0 +1,282 @@
+You are a senior QA engineer. Generate comprehensive test cases for the following user flow.
+Return ONLY valid JSON (no preamble, no markdown fences).
+
+Flow name: Login and Company Profile Setup Flow
+
+Flow steps:
+[
+  {
+    "sequence": 1,
+    "action": "fill",
+    "element_id": "b80dce19-cb5a-4f29-be15-ee1fcc409ce0",
+    "value": "admin@talakunchi.com",
+    "url": null
+  },
+  {
+    "sequence": 2,
+    "action": "fill",
+    "element_id": "ea7b74e5-bfc6-4ab7-b44e-adf1d3d78e67",
+    "value": "Test#123",
+    "url": null
+  },
+  {
+    "sequence": 3,
+    "action": "click",
+    "element_id": null,
+    "value": null,
+    "url": null
+  },
+  {
+    "sequence": 4,
+    "action": "click",
+    "element_id": null,
+    "value": null,
+    "url": null
+  },
+  {
+    "sequence": 5,
+    "action": "click",
+    "element_id": "51f3ea6e-5016-401a-b8c1-63ffbe677ce3",
+    "value": "1234",
+    "url": null
+  },
+  {
+    "sequence": 6,
+    "action": "click",
+    "element_id": null,
+    "value": null,
+    "url": null
+  },
+  {
+    "sequence": 7,
+    "action": "click",
+    "element_id": "209c82ba-4a62-47c7-a2b3-7628a38c66ae",
+    "value": "Tata Steel",
+    "url": null
+  },
+  {
+    "sequence": 8,
+    "action": "click",
+    "element_id": "0aaba36b-429a-4d17-8048-4e4d8528f5f8",
+    "value": "LIC-123457",
+    "url": null
+  },
+  {
+    "sequence": 9,
+    "action": "click",
+    "element_id": "e7b3b31e-9414-4e4b-92c3-8021aa2f98b7",
+    "value": "https://tatasteel.com",
+    "url": null
+  },
+  {
+    "sequence": 10,
+    "action": "click",
+    "element_id": "58cb0185-5abb-4f35-97fa-9753b5b2ed92",
+    "value": "tatasteel.com",
+    "url": null
+  },
+  {
+    "sequence": 11,
+    "action": "click",
+    "element_id": "539c9d4d-ad1d-4ea5-9dfa-8de136e4597f",
+    "value": "Yadnesh",
+    "url": null
+  },
+  {
+    "sequence": 12,
+    "action": "click",
+    "element_id": "b80dce19-cb5a-4f29-be15-ee1fcc409ce0",
+    "value": "yadnesh12",
+    "url": null
+  },
+  {
+    "sequence": 13,
+    "action": "click",
+    "element_id": "44e86a89-e015-4cea-b959-f01d9ee66556",
+    "value": "1234467892",
+    "url": null
+  },
+  {
+    "sequence": 14,
+    "action": "click",
+    "element_id": "0869e2a4-c4e8-4d40-8a7e-3542c60f3f2f",
+    "value": "ajinkya",
+    "url": null
+  },
+  {
+    "sequence": 15,
+    "action": "click",
+    "element_id": "b80dce19-cb5a-4f29-be15-ee1fcc409ce0",
+    "value": "ajinkya123",
+    "url": null
+  },
+  {
+    "sequence": 16,
+    "action": "click",
+    "element_id": "44e86a89-e015-4cea-b959-f01d9ee66556",
+    "value": "1234567895",
+    "url": null
+  },
+  {
+    "sequence": 17,
+    "action": "click",
+    "element_id": "99c54d96-feb0-4459-8dd1-c4152d1fa431",
+    "value": null,
+    "url": null
+  }
+]
+
+Available elements:
+[
+  {
+    "id": "b80dce19-cb5a-4f29-be15-ee1fcc409ce0",
+    "type": "input",
+    "label": "Email ID input field",
+    "observed_values": [
+      "admin@talakunchi.com"
+    ],
+    "validation_rules": [
+      "required|email_format"
+    ]
+  },
+  {
+    "id": "ea7b74e5-bfc6-4ab7-b44e-adf1d3d78e67",
+    "type": "input",
+    "label": "Password input field",
+    "observed_values": [
+      "Test#123"
+    ],
+    "validation_rules": [
+      "required",
+      "min_length",
+      "max_length"
+    ]
+  },
+  {
+    "id": "cdb64579-70d4-4eb1-b4be-b35386fafe5b",
+    "type": "input",
+    "label": "Settings",
+    "observed_values": [],
+    "validation_rules": []
+  },
+  {
+    "id": "beb436ac-d65b-4c3e-8227-ffc404d9b945",
+    "type": "link",
+    "label": "General input field",
+    "observed_values": [],
+    "validation_rules": [
+      "required",
+      "email_format",
+      "min_length",
+      "max_length",
+      "numeric"
+    ]
+  },
+  {
+    "id": "51f3ea6e-5016-401a-b8c1-63ffbe677ce3",
+    "type": "input",
+    "label": "Company code input field",
+    "observed_values": [
+      "1234"
+    ],
+    "validation_rules": [
+      "required",
+      "min_length",
+      "max_length"
+    ]
+  },
+  {
+    "id": "0bcecbd5-bc07-4d34-a324-65bd5ce4c358",
+    "type": "input",
+    "label": "Company name input field",
+    "observed_values": [],
+    "validation_rules": [
+      "required",
+      "min_length",
+      "max_length"
+    ]
+  },
+  {
+    "id": "209c82ba-4a62-47c7-a2b3-7628a38c66ae",
+    "type": "input",
+    "label": "Company Name",
+    "observed_values": [
+      "Tata Steel"
+    ],
+    "validation_rules": [
+      "required",
+      "min_length",
+      "max_length"
+    ]
+  },
+  {
+    "id": "0aaba36b-429a-4d17-8048-4e4d8528f5f8",
+    "type": "input",
+    "label": "License Number Input Field",
+    "observed_values": [
+      "LIC-123457"
+    ],
+    "validation_rules": [
+      "required",
+      "min_length",
+      "max_length"
+    ]
+  },
+  {
+    "id": "e7b3b31e-9414-4e4b-92c3-8021aa2f98b7",
+    "type": "input",
+    "label": "Website URL input field",
+    "observed_values": [
+      "https://tatasteel.com"
+    ],
+    "validation_rules": [
+      "required",
+      "min_length",
+      "max_length"
+    ]
+  },
+  {
+    "id": "58cb0185-5abb-4f35-97fa-9753b5b2ed92",
+    "type": "input",
+    "label": "Enter domain",
+    "observed_values": [
+      "tatasteel.com"
+    ],
+    "validation_rules": [
+      "required",
+      "min_length",
+      "max_length"
+    ]
+  }
+]
+
+Expected outcome:
+{
+  "type": "text_present",
+  "url_pattern": "/settings/general/company",
+  "element_label": null,
+  "text": "Company details saved successfully"
+}
+
+Generate exactly 1 happy_path test, 3-5 negative tests, and 2-3 edge_case tests.
+Negative tests should cover: empty fields, invalid formats, wrong credentials, boundary values.
+Edge case tests should cover: special characters, very long inputs, unexpected sequences.
+
+CRITICAL: DO NOT use javascript expressions or method calls like .repeat() in string values. Use literal string values only (e.g. for long inputs, just type a long string like "aaaaaaaaaaaaaaaaaaaa").
+
+Return ONLY this JSON structure:
+{
+  "test_cases": [
+    {
+      "name": "Descriptive test case name",
+      "category": "happy_path|negative|edge_case",
+      "steps": [
+        {"sequence": 1, "action": "fill|click|navigate|select|check|hover|clear", "element_id": "element_id_here", "value": "value_to_use"}
+      ],
+      "assertions": [
+        {"type": "url_contains|element_visible|text_equals|element_count|element_absent", "expected": "expected_value", "element_label": "optional element label"}
+      ],
+      "confidence": 0.95
+    }
+  ]
+}

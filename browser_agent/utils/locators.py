@@ -111,26 +111,42 @@ def _build_playwright_locator(page: Page, spec: LocatorSpec):
     strategy = spec.strategy
     value = spec.value
 
+    # Strip ::nth=N suffix (used internally for disambiguation)
+    nth = None
+    if "::nth=" in value:
+        value, nth_str = value.rsplit("::nth=", 1)
+        try:
+            nth = int(nth_str)
+        except ValueError:
+            nth = None
+
     if strategy == "aria_label":
-        return page.get_by_label(value)
+        loc = page.get_by_label(value)
     elif strategy == "placeholder":
-        return page.get_by_placeholder(value)
+        loc = page.get_by_placeholder(value)
     elif strategy == "role":
         # value format: "role:name"
         parts = value.split(":", 1)
         role = parts[0]
         name = parts[1] if len(parts) > 1 else None
         if name:
-            return page.get_by_role(role, name=name)
-        return page.get_by_role(role)
+            loc = page.get_by_role(role, name=name)
+        else:
+            loc = page.get_by_role(role)
     elif strategy == "text":
-        return page.get_by_text(value, exact=False)
+        loc = page.get_by_text(value, exact=False)
     elif strategy == "id":
-        return page.locator(f"#{value}")
+        loc = page.locator(f"#{value}")
     elif strategy in ("css_name", "xpath_text", "css"):
-        return page.locator(value)
+        loc = page.locator(value)
     else:
-        return page.locator(value)
+        loc = page.locator(value)
+
+    # Apply .nth() if specified
+    if nth is not None:
+        loc = loc.nth(nth)
+
+    return loc
 
 
 async def resolve_locator(

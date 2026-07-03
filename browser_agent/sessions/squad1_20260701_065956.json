@@ -1,0 +1,1911 @@
+{
+  "events": [
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "",
+      "value": null,
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "click",
+      "timestamp": 1782888984909,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "t",
+      "value": "t",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888985994,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "",
+      "value": null,
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888986306,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "a",
+      "value": "a",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888988143,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "ad",
+      "value": "ad",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888988322,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "adm",
+      "value": "adm",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888988450,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admi",
+      "value": "admi",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888988664,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin",
+      "value": "admin",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888988740,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@",
+      "value": "admin@",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888989798,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@t",
+      "value": "admin@t",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888990220,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@ta",
+      "value": "admin@ta",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888990376,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@tal",
+      "value": "admin@tal",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888990457,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@tala",
+      "value": "admin@tala",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888990909,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@talak",
+      "value": "admin@talak",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888991156,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@talaku",
+      "value": "admin@talaku",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888991376,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@talakun",
+      "value": "admin@talakun",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888991584,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@talakunc",
+      "value": "admin@talakunc",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888991825,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@talakunchi",
+      "value": "admin@talakunchi",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888992011,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@talakunchic",
+      "value": "admin@talakunchic",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888992718,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@talakunchi",
+      "value": "admin@talakunchi",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888993105,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@talakunchi.",
+      "value": "admin@talakunchi.",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888993308,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@talakunchi.c",
+      "value": "admin@talakunchi.c",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888993413,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@talakunchi.co",
+      "value": "admin@talakunchi.co",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888993583,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@talakunchi.com",
+      "value": "admin@talakunchi.com",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888993672,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtLoginID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "admin@talakunchi.com",
+      "value": "admin@talakunchi.com",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "change",
+      "timestamp": 1782888994868,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "",
+      "value": null,
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "click",
+      "timestamp": 1782888995091,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "te",
+      "value": "te",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888995352,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "t",
+      "value": "t",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888996133,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "",
+      "value": null,
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888996258,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "d",
+      "value": "d",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888996359,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "",
+      "value": null,
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888997219,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "T",
+      "value": "T",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888998616,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Te",
+      "value": "Te",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888998918,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Test",
+      "value": "Test",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782888999323,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Test@",
+      "value": "Test@",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889000334,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Test@1",
+      "value": "Test@1",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889000741,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Test@",
+      "value": "Test@",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889001614,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Test",
+      "value": "Test",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889001783,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Tes",
+      "value": "Tes",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889001914,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Te",
+      "value": "Te",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889002125,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "T",
+      "value": "T",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889002304,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "",
+      "value": null,
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889002434,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "T",
+      "value": "T",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889003015,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Te",
+      "value": "Te",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889003236,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Tes",
+      "value": "Tes",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889003448,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Test",
+      "value": "Test",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889003554,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Test#",
+      "value": "Test#",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889004313,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Test#1",
+      "value": "Test#1",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889004715,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Test#12",
+      "value": "Test#12",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889004923,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Test#123",
+      "value": "Test#123",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889005123,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "input",
+      "type_attr": "password",
+      "id": "txtP",
+      "name": null,
+      "placeholder": "Password",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Test#123",
+      "value": "Test#123",
+      "classes": [
+        "form-control",
+        "login-input"
+      ],
+      "event_type": "change",
+      "timestamp": 1782889006349,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "a",
+      "type_attr": null,
+      "id": "loginBtn",
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": null,
+      "text_content": "LOG IN",
+      "value": null,
+      "classes": [],
+      "event_type": "click",
+      "timestamp": 1782889006564,
+      "page_url": "https://test5.squad1.tech/"
+    },
+    {
+      "tag": "a",
+      "type_attr": null,
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": null,
+      "text_content": "User",
+      "value": null,
+      "classes": [
+        "nav-link",
+        "active"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889090443,
+      "page_url": "https://test5.squad1.tech/home"
+    },
+    {
+      "tag": "path",
+      "type_attr": null,
+      "id": "icon-add-svg",
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": null,
+      "text_content": "",
+      "value": null,
+      "classes": [],
+      "event_type": "click",
+      "timestamp": 1782889149545,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmployeeName",
+      "name": null,
+      "placeholder": "Employee Name",
+      "aria_label": null,
+      "role": null,
+      "text_content": "",
+      "value": null,
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889154743,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmployeeName",
+      "name": null,
+      "placeholder": "Employee Name",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Y",
+      "value": "Y",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889155887,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmployeeName",
+      "name": null,
+      "placeholder": "Employee Name",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Ya",
+      "value": "Ya",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889156035,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmployeeName",
+      "name": null,
+      "placeholder": "Employee Name",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Yad",
+      "value": "Yad",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889156226,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmployeeName",
+      "name": null,
+      "placeholder": "Employee Name",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Yadn",
+      "value": "Yadn",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889156404,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmployeeName",
+      "name": null,
+      "placeholder": "Employee Name",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Yadne",
+      "value": "Yadne",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889156719,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmployeeName",
+      "name": null,
+      "placeholder": "Employee Name",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Yadnes",
+      "value": "Yadnes",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889157095,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmployeeName",
+      "name": null,
+      "placeholder": "Employee Name",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Yadnesh",
+      "value": "Yadnesh",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889157234,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmployeeName",
+      "name": null,
+      "placeholder": "Employee Name",
+      "aria_label": null,
+      "role": null,
+      "text_content": "Yadnesh",
+      "value": "Yadnesh",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "change",
+      "timestamp": 1782889158271,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "div",
+      "type_attr": null,
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": null,
+      "text_content": "Email Id *\n@tatasteel.com",
+      "value": null,
+      "classes": [
+        "individual-queryrow"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889158577,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "div",
+      "type_attr": null,
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": null,
+      "text_content": "Email Id *\n@tatasteel.com",
+      "value": null,
+      "classes": [
+        "individual-queryrow"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889158974,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmailID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "y",
+      "value": "y",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889160175,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmailID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "y",
+      "value": "y",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889160178,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmailID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "ya",
+      "value": "ya",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889160266,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmailID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "yad",
+      "value": "yad",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889160672,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmailID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "yadn",
+      "value": "yadn",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889161113,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmailID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "yadne",
+      "value": "yadne",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889161199,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmailID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "yadnes",
+      "value": "yadnes",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889161342,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmailID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "yadnesh",
+      "value": "yadnesh",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889161445,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmailID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "yadnesh4",
+      "value": "yadnesh4",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889162718,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtEmailID",
+      "name": null,
+      "placeholder": "Email ID",
+      "aria_label": null,
+      "role": null,
+      "text_content": "yadnesh4",
+      "value": "yadnesh4",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "change",
+      "timestamp": 1782889164276,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtMobile",
+      "name": null,
+      "placeholder": "Employee Mobile No",
+      "aria_label": null,
+      "role": null,
+      "text_content": "",
+      "value": null,
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889164504,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtMobile",
+      "name": null,
+      "placeholder": "Employee Mobile No",
+      "aria_label": null,
+      "role": null,
+      "text_content": "1",
+      "value": "1",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889165570,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtMobile",
+      "name": null,
+      "placeholder": "Employee Mobile No",
+      "aria_label": null,
+      "role": null,
+      "text_content": "12",
+      "value": "12",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889165666,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtMobile",
+      "name": null,
+      "placeholder": "Employee Mobile No",
+      "aria_label": null,
+      "role": null,
+      "text_content": "123",
+      "value": "123",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889165914,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtMobile",
+      "name": null,
+      "placeholder": "Employee Mobile No",
+      "aria_label": null,
+      "role": null,
+      "text_content": "1234",
+      "value": "1234",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889166286,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtMobile",
+      "name": null,
+      "placeholder": "Employee Mobile No",
+      "aria_label": null,
+      "role": null,
+      "text_content": "12345",
+      "value": "12345",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889166577,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtMobile",
+      "name": null,
+      "placeholder": "Employee Mobile No",
+      "aria_label": null,
+      "role": null,
+      "text_content": "123456",
+      "value": "123456",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889166794,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtMobile",
+      "name": null,
+      "placeholder": "Employee Mobile No",
+      "aria_label": null,
+      "role": null,
+      "text_content": "1234567",
+      "value": "1234567",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889167082,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtMobile",
+      "name": null,
+      "placeholder": "Employee Mobile No",
+      "aria_label": null,
+      "role": null,
+      "text_content": "12345678",
+      "value": "12345678",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889167346,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtMobile",
+      "name": null,
+      "placeholder": "Employee Mobile No",
+      "aria_label": null,
+      "role": null,
+      "text_content": "123456789",
+      "value": "123456789",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889167589,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtMobile",
+      "name": null,
+      "placeholder": "Employee Mobile No",
+      "aria_label": null,
+      "role": null,
+      "text_content": "1234567892",
+      "value": "1234567892",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889169067,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtMobile",
+      "name": null,
+      "placeholder": "Employee Mobile No",
+      "aria_label": null,
+      "role": null,
+      "text_content": "1234567892",
+      "value": "1234567892",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "change",
+      "timestamp": 1782889170492,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "span",
+      "type_attr": null,
+      "id": "select2-ddlDesignation-container",
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": "textbox",
+      "text_content": "Infosec Manager",
+      "value": null,
+      "classes": [
+        "select2-selection__rendered"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889170654,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "div",
+      "type_attr": null,
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": null,
+      "text_content": "Department *\nApplication Team\nBusiness Operations\nCritical Application Teams\nDC Facility Team\nDevelopment Operations\nNetwork Team\nSales\nSecurity Group\nSTRATEGY\ntesting\nWeb Team\nSelect Department...",
+      "value": null,
+      "classes": [
+        "individual-queryrow"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889172343,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "span",
+      "type_attr": null,
+      "id": "select2-ddlDepartment-container",
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": "textbox",
+      "text_content": "Select Department...",
+      "value": null,
+      "classes": [
+        "select2-selection__rendered"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889173295,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "span",
+      "type_attr": null,
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": "combobox",
+      "text_content": "Reporting To",
+      "value": null,
+      "classes": [
+        "select2-selection",
+        "select2-selection--single"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889175227,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "search",
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": "searchbox",
+      "text_content": "A",
+      "value": "A",
+      "classes": [
+        "select2-search__field"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889176810,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "search",
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": "searchbox",
+      "text_content": "Aj",
+      "value": "Aj",
+      "classes": [
+        "select2-search__field"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889176994,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "search",
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": "searchbox",
+      "text_content": "Aji",
+      "value": "Aji",
+      "classes": [
+        "select2-search__field"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889177192,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "search",
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": "searchbox",
+      "text_content": "Ajin",
+      "value": "Ajin",
+      "classes": [
+        "select2-search__field"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889177533,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "search",
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": "searchbox",
+      "text_content": "Ajink",
+      "value": "Ajink",
+      "classes": [
+        "select2-search__field"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889177780,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "search",
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": "searchbox",
+      "text_content": "Ajinky",
+      "value": "Ajinky",
+      "classes": [
+        "select2-search__field"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889178041,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "search",
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": "searchbox",
+      "text_content": "Ajinkya",
+      "value": "Ajinkya",
+      "classes": [
+        "select2-search__field"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889178108,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "search",
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": "searchbox",
+      "text_content": "Ajinkya",
+      "value": "Ajinkya",
+      "classes": [
+        "select2-search__field"
+      ],
+      "event_type": "change",
+      "timestamp": 1782889179730,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "span",
+      "type_attr": null,
+      "id": "select2-ddlDataAccess-container",
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": "textbox",
+      "text_content": "All",
+      "value": null,
+      "classes": [
+        "select2-selection__rendered"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889179933,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "span",
+      "type_attr": null,
+      "id": "select2-ddluserGroup-container",
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": "textbox",
+      "text_content": "Admin",
+      "value": null,
+      "classes": [
+        "select2-selection__rendered"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889182279,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "div",
+      "type_attr": null,
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": null,
+      "text_content": "Location *\nANDHERI\nARGENTINA\nDC\nDR\nGeneva\nGREECE\nHO\nMumbai\nMumbai Data Center\nNew York\nSEOUL\nVASAI\nHO\n Add",
+      "value": null,
+      "classes": [
+        "individual-queryrow"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889184897,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "span",
+      "type_attr": null,
+      "id": "select2-ddlLocation-container",
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": "textbox",
+      "text_content": "HO",
+      "value": null,
+      "classes": [
+        "select2-selection__rendered"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889185268,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtduration",
+      "name": null,
+      "placeholder": "Days after User Get Deactivated",
+      "aria_label": null,
+      "role": null,
+      "text_content": "",
+      "value": null,
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889187174,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtduration",
+      "name": null,
+      "placeholder": "Days after User Get Deactivated",
+      "aria_label": null,
+      "role": null,
+      "text_content": "7",
+      "value": "7",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "input",
+      "timestamp": 1782889191362,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "input",
+      "type_attr": "text",
+      "id": "txtduration",
+      "name": null,
+      "placeholder": "Days after User Get Deactivated",
+      "aria_label": null,
+      "role": null,
+      "text_content": "7",
+      "value": "7",
+      "classes": [
+        "form-control"
+      ],
+      "event_type": "change",
+      "timestamp": 1782889192528,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    },
+    {
+      "tag": "button",
+      "type_attr": "button",
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "aria_label": null,
+      "role": null,
+      "text_content": "Submit",
+      "value": null,
+      "classes": [
+        "btn",
+        "submitbtn",
+        "btn-leftmargin"
+      ],
+      "event_type": "click",
+      "timestamp": 1782889192750,
+      "page_url": "https://test5.squad1.tech/settings/usermanagement/employee"
+    }
+  ],
+  "navigations": [
+    {
+      "url": "https://test5.squad1.tech/",
+      "title": "Squad1 - A Product by Talakunchi Networks Pvt. Ltd.",
+      "accessibility_snapshot": {
+        "role": "WebArea",
+        "name": "Squad1 - A Product by Talakunchi Networks Pvt. Ltd."
+      },
+      "screenshot_path": "screenshots\\20260701_065557_961085_nav_0.png",
+      "timestamp": "2026-07-01T06:56:16.412372"
+    },
+    {
+      "url": "https://test5.squad1.tech/home",
+      "title": "",
+      "accessibility_snapshot": {
+        "role": "WebArea",
+        "name": ""
+      },
+      "screenshot_path": "",
+      "timestamp": "2026-07-01T06:57:17.922803"
+    },
+    {
+      "url": "https://test5.squad1.tech/settings/usermanagement/employee",
+      "title": "",
+      "accessibility_snapshot": {
+        "role": "WebArea",
+        "name": ""
+      },
+      "screenshot_path": "screenshots\\20260701_065812_670667_nav_2.png",
+      "timestamp": "2026-07-01T06:58:38.951120"
+    }
+  ],
+  "dialogs": [],
+  "api_calls": [],
+  "app_name": "squad1",
+  "start_url": "https://test5.squad1.tech/",
+  "recorded_at": "2026-07-01T06:59:56.521372"
+}

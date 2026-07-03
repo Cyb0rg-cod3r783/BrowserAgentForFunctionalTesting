@@ -15,7 +15,7 @@ class Config:
     SCREENSHOTS_DIR: str = os.environ.get("SCREENSHOTS_DIR", "./screenshots")
     REPORTS_DIR: str = os.environ.get("REPORTS_DIR", "./reports")
     LLM_CACHE_DIR: str = os.environ.get("LLM_CACHE_DIR", "./llm_cache")
-    GROQ_SMART_MODEL: str = os.environ.get("GROQ_SMART_MODEL", "llama-3.3-70b-versatile")
+    GROQ_SMART_MODEL: str = os.environ.get("GROQ_SMART_MODEL", "qwen/qwen3-32b")
     GROQ_FAST_MODEL: str = os.environ.get("GROQ_FAST_MODEL", "llama-3.1-8b-instant")
     MAX_LLM_RETRIES: int = int(os.environ.get("MAX_LLM_RETRIES", "3"))
     LOCATOR_TIMEOUT_MS: int = int(os.environ.get("LOCATOR_TIMEOUT_MS", "3000"))

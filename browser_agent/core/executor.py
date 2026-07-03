@@ -125,10 +125,15 @@ class TestExecutor:
             context = await browser.new_context()
             page = await context.new_page()
             page.set_default_timeout(self.navigation_timeout_ms)
+            page.set_default_navigation_timeout(self.navigation_timeout_ms)
 
             # Navigate to start URL
             try:
-                await page.goto(start_url, timeout=self.navigation_timeout_ms)
+                await page.goto(
+                    start_url,
+                    timeout=self.navigation_timeout_ms,
+                    wait_until="domcontentloaded"  # faster than default "load"
+                )
             except Exception as e:
                 error_detail = f"Failed to navigate to {start_url}: {e}"
                 overall_status = "errored"
@@ -160,11 +165,11 @@ class TestExecutor:
 
                 try:
                     if step.action == "navigate":
-                        await page.goto(step.url or start_url, timeout=self.navigation_timeout_ms)
-                        try:
-                            await page.wait_for_load_state("networkidle", timeout=self.navigation_timeout_ms)
-                        except Exception:
-                            pass
+                        await page.goto(
+                            step.url or start_url,
+                            timeout=self.navigation_timeout_ms,
+                            wait_until="domcontentloaded"
+                        )
 
                     else:
                         # Resolve element
@@ -180,11 +185,11 @@ class TestExecutor:
                             # Execute action
                             await self._execute_action(page, locator, step)
 
-                            # Wait for network idle
+                            # Wait for network idle (short timeout)
                             try:
                                 await page.wait_for_load_state(
                                     "networkidle",
-                                    timeout=self.navigation_timeout_ms
+                                    timeout=2000
                                 )
                             except Exception:
                                 pass
@@ -229,7 +234,11 @@ class TestExecutor:
             if overall_status != "errored":
                 try:
                     assertion_results = await evaluate_assertions(
-                        page, test_case.assertions
+                        page,
+                        test_case.assertions,
+                        elements,
+                        self.llm_client,
+                        test_case.name
                     )
                     # If any assertion failed, mark test as failed
                     if any(not ar.get("passed", False) for ar in assertion_results):
@@ -290,6 +299,10 @@ class TestExecutor:
         value = step.value or ""
 
         if action == "fill":
+            try:
+                await locator.click(timeout=2000)
+            except Exception:
+                pass
             await locator.fill(value)
         elif action == "click":
             await locator.click()
