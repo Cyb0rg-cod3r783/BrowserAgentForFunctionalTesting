@@ -151,7 +151,6 @@ async def evaluate_assertions(
 
     return results
 
-
 async def _evaluate_semantic_fallback(page, assertion, result, test_name, llm_client):
     """Evaluate failed assertions conceptually using the fast LLM model."""
     log_file = "semantic_fallback_debug.log"
@@ -160,13 +159,75 @@ async def _evaluate_semantic_fallback(page, assertion, result, test_name, llm_cl
             f.write(f"\n--- Fallback Initiated ---\nTest: {test_name}\nAssertion: {assertion.type} | Expected: {assertion.expected}\nActual: {result['actual']}\n")
         
         from llm.prompts import SEMANTIC_ASSERTION_PROMPT
-        
-        # Scrape text from the page if the check involves text/visibility
+
+        # ── Toast / alert capture ──────────────────────────────────────────
+        # For text/visibility assertions, try to capture the visible toast or
+        # alert message BEFORE scraping general body text.  This ensures the
+        # report's "actual" column shows the real on-screen error text.
+        #
+        # Strategy: read .toast-title and .toast-message separately and join
+        # them so we get "Squad1 - By Talakunchi!!! | User ID is Required."
+        # Falling back to a generic selector loop for non-squad1 toasts.
+        toast_text = ""
+        if assertion.type in ("element_visible", "text_equals", "element_absent", "url_contains"):
+            # ── Preferred: structured title + message ──────────────────────
+            try:
+                title_loc = page.locator(".toast-title")
+                await title_loc.first.wait_for(state="visible", timeout=1500)
+                title_raw = (await title_loc.first.inner_text() or "").strip()
+
+                msg_loc = page.locator(".toast-message")
+                msg_raw = ""
+                if await msg_loc.count() > 0:
+                    msg_raw = (await msg_loc.first.inner_text() or "").strip()
+                    # Collapse <br> separated lines into " | "
+                    msg_raw = " | ".join(
+                        p.strip() for p in msg_raw.splitlines() if p.strip()
+                    )
+
+                parts = [p for p in [title_raw, msg_raw] if p]
+                if parts:
+                    toast_text = " | ".join(parts)
+            except Exception:
+                pass
+
+            # ── Fallback: generic selectors ────────────────────────────────
+            if not toast_text:
+                fallback_selectors = [
+                    ".toast",
+                    "[role='alert']",
+                    ".alert",
+                    ".notification",
+                ]
+                for sel in fallback_selectors:
+                    try:
+                        loc = page.locator(sel)
+                        await loc.first.wait_for(state="visible", timeout=1500)
+                        raw = (await loc.first.inner_text()) or ""
+                        # Strip close-button Unicode glyphs and collapse whitespace
+                        import unicodedata
+                        cleaned_lines = []
+                        for line in raw.splitlines():
+                            line = line.strip()
+                            # Drop lines that are purely non-printable / symbol chars
+                            if line and not all(
+                                unicodedata.category(c) in ("So", "Sm", "Sk", "Sc", "Cn")
+                                for c in line
+                            ):
+                                cleaned_lines.append(line)
+                        cleaned = " | ".join(cleaned_lines)
+                        if cleaned:
+                            toast_text = cleaned
+                            break
+                    except Exception:
+                        continue
+
+
+        # ── General body text ──────────────────────────────────────────────
         page_text = ""
         if assertion.type in ("element_visible", "text_equals", "element_absent"):
             try:
                 page_text = await page.locator("body").inner_text()
-                # Truncate text to avoid excessively large context windows
                 page_text = page_text[:4000]
             except Exception as pe:
                 page_text = f"Error scraping page text: {pe}"
@@ -176,11 +237,16 @@ async def _evaluate_semantic_fallback(page, assertion, result, test_name, llm_cl
         if ":::" in expected_val:
             expected_val = expected_val.split(":::", 1)[1]
 
+        # Build the actual_value fed to the LLM – toast text takes priority
+        actual_for_llm = result["actual"] or "not found/visible"
+        if toast_text:
+            actual_for_llm = f"Toast: '{toast_text}'"
+
         prompt = SEMANTIC_ASSERTION_PROMPT.format(
             test_name=test_name,
             assertion_type=assertion.type,
             expected_value=expected_val,
-            actual_value=result["actual"] or "not found/visible",
+            actual_value=actual_for_llm,
             page_text=page_text
         )
 
@@ -196,7 +262,11 @@ async def _evaluate_semantic_fallback(page, assertion, result, test_name, llm_cl
 
         if llm_res.get("passed") is True:
             result["passed"] = True
-            result["actual"] = f"Conceptually passed: {llm_res.get('reason', 'Semantic match confirmed by LLM')}"
+            reason = llm_res.get("reason", "Semantic match confirmed by LLM")
+            if toast_text:
+                result["actual"] = f"Toast: '{toast_text}' (Conceptually passed: {reason})"
+            else:
+                result["actual"] = f"Conceptually passed: {reason}"
     except Exception as e:
         # Log verifier failure for debugging
         try:

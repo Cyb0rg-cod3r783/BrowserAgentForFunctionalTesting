@@ -1,0 +1,17 @@
+import { test, expect } from '@playwright/test';
+
+test('test', async ({ page }) => {
+  await page.goto('https://test5.squad1.tech/');
+  await page.getByRole('textbox', { name: 'Email ID' }).click();
+  await page.getByRole('textbox', { name: 'Email ID' }).fill('admin@talakunchi.com');
+  await page.getByRole('textbox', { name: 'Password' }).click();
+  await page.getByRole('textbox', { name: 'Password' }).fill('Test#123');
+  await page.getByRole('link', { name: 'Log in' }).click();
+  await page.getByRole('link', { name: 'Log in' }).click();
+  await page.getByRole('link', { name: 'Log in' }).click();
+  await page.getByRole('link', { name: 'Log in' }).click();
+  await page.getByRole('link', { name: 'Log in' }).click();
+  await page.getByRole('link', { name: 'Log in' }).click();
+  await page.getByRole('link', { name: 'Log in' }).dblclick();
+  await page.getByRole('link', { name: 'Log in' }).dblclick();
+});

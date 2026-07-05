@@ -22,6 +22,7 @@ browser_agent/screenshots/
 
 # Test output/data
 browser_agent/session_test.json
+browser_agent/semantic_fallback_debug.log
 
 # IDEs and Editors
 .vscode/
@@ -32,3 +33,13 @@ browser_agent/session_test.json
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Node.js dependencies — NEVER commit these
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Playwright output directories
+playwright-report/
+test-results/
