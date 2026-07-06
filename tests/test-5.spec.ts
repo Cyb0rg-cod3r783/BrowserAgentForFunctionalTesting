@@ -1,0 +1,34 @@
+import { test, expect } from '@playwright/test';
+
+test('test', async ({ page }) => {
+  await page.goto('https://test5.squad1.tech/login?RetUrl=/settings/general/company');
+  await page.getByRole('textbox', { name: 'Email ID' }).click();
+  await page.getByRole('textbox', { name: 'Email ID' }).fill('admin@talakunchi.com');
+  await page.getByRole('textbox', { name: 'Password' }).click();
+  await page.getByRole('textbox', { name: 'Password' }).fill('Test#123');
+  await page.getByRole('link', { name: 'Log in' }).click();
+  await page.getByRole('textbox', { name: 'Company code' }).click();
+  await page.getByRole('textbox', { name: 'Company code' }).fill('12344');
+  await page.getByRole('textbox', { name: 'Company Name' }).click();
+  await page.getByRole('textbox', { name: 'Company Name' }).fill('Tata Steel');
+  await page.getByText('Company Code * Company Name').click();
+  await page.getByRole('textbox', { name: 'License No' }).click();
+  await page.getByRole('textbox', { name: 'License No' }).fill('LIC-12345');
+  await page.getByRole('textbox', { name: 'Website' }).click();
+  await page.getByRole('textbox', { name: 'Website' }).fill('https://tatasteel.co');
+  await page.getByRole('textbox', { name: 'Domain' }).click();
+  await page.getByRole('textbox', { name: 'Domain' }).fill('tatasteel.com');
+  await page.getByRole('textbox', { name: 'Name', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Yadnes');
+  await page.getByRole('textbox', { name: 'Email ID' }).first().click();
+  await page.getByRole('textbox', { name: 'Email ID' }).first().fill('yadnesh12');
+  await page.locator('#txtCP1_Contact').click();
+  await page.locator('#txtCP1_Contact').fill('1234567892');
+  await page.getByRole('textbox', { name: 'Name of the Person' }).click();
+  await page.getByRole('textbox', { name: 'Name of the Person' }).fill('Ajinkya');
+  await page.getByRole('textbox', { name: 'Email ID' }).nth(1).click();
+  await page.getByRole('textbox', { name: 'Email ID' }).nth(1).fill('ajinkya123');
+  await page.locator('#txtCP2_Contact').click();
+  await page.locator('#txtCP2_Contact').fill('1234567896');
+  await page.getByRole('button', { name: 'Submit' }).click();
+});

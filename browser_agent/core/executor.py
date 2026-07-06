@@ -216,6 +216,8 @@ class TestExecutor:
                         page, self.screenshots_dir,
                         label=f"failure_step_{step.sequence}"
                     )
+                    step_results.append(step_result)
+                    break
 
                 except Exception as e:
                     step_result.status = "errored"
@@ -227,6 +229,8 @@ class TestExecutor:
                         page, self.screenshots_dir,
                         label=f"error_step_{step.sequence}"
                     )
+                    step_results.append(step_result)
+                    break
 
                 step_results.append(step_result)
 
@@ -299,6 +303,10 @@ class TestExecutor:
         value = step.value or ""
 
         if action == "fill":
+            try:
+                await locator.evaluate("el => el.removeAttribute('readonly')")
+            except Exception:
+                pass
             try:
                 await locator.click(timeout=2000)
             except Exception:

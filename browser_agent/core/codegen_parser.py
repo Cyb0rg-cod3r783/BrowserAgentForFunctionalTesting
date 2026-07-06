@@ -6,6 +6,8 @@ Playwright codegen (npx playwright codegen --target javascript) produces code li
     await page.getByRole('textbox', { name: 'Email ID' }).fill('admin@...');
     await page.getByRole('link', { name: 'Log in' }).click();
     await page.locator('#txtCP1_Contact').click();
+    await page.locator('#dvaddbutton').getByRole('link').click();
+    await page.locator('#select2-x').getByRole('searchbox').nth(1).fill('value');
 
 This module converts that into a list of dicts our model_builder can consume.
 """
@@ -18,13 +20,16 @@ def parse_playwright_js(js_code: str) -> list[dict]:
 
     Each step is one of:
       {"step_type": "navigate", "url": "https://..."}
-      {"step_type": "action", "locator_type": "role",      "role": "textbox", "name": "Email ID", "nth": None, "action": "fill",  "value": "admin@..."}
-      {"step_type": "action", "locator_type": "role",      "role": "link",    "name": "Log in",   "nth": None, "action": "click", "value": None}
-      {"step_type": "action", "locator_type": "id",        "selector": "txtCP1_Contact",           "nth": None, "action": "click", "value": None}
-      {"step_type": "action", "locator_type": "css",       "selector": "input[name='x']",          "nth": None, "action": "click", "value": None}
-      {"step_type": "action", "locator_type": "text",      "text": "Some visible text",            "nth": None, "action": "click", "value": None}
-      {"step_type": "action", "locator_type": "aria_label","name": "Email ID",                     "nth": None, "action": "fill",  "value": "..."}
-      {"step_type": "action", "locator_type": "placeholder","name": "Password",                    "nth": None, "action": "fill",  "value": "..."}
+      {"step_type": "action", "locator_type": "role",            "role": "textbox", "name": "Email ID", "nth": None, "action": "fill",  "value": "admin@..."}
+      {"step_type": "action", "locator_type": "role",            "role": "link",    "name": "Log in",   "nth": None, "action": "click", "value": None}
+      {"step_type": "action", "locator_type": "id",              "selector": "txtCP1_Contact",           "nth": None, "action": "click", "value": None}
+      {"step_type": "action", "locator_type": "css",             "selector": "input[name='x']",          "nth": None, "action": "click", "value": None}
+      {"step_type": "action", "locator_type": "text",            "text": "Some visible text",            "nth": None, "action": "click", "value": None}
+      {"step_type": "action", "locator_type": "aria_label",      "name": "Email ID",                     "nth": None, "action": "fill",  "value": "..."}
+      {"step_type": "action", "locator_type": "placeholder",     "name": "Password",                    "nth": None, "action": "fill",  "value": "..."}
+      # Chained locator forms (new):
+      {"step_type": "action", "locator_type": "chained_css_role", "selector": "dvaddbutton", "role": "link",    "name": None, "nth": None, "action": "click", "value": None}
+      {"step_type": "action", "locator_type": "chained_css_role", "selector": "select2-x",  "role": "searchbox","name": None, "nth": 1,    "action": "fill",  "value": "..."}
     """
     steps: list[dict] = []
     current_url = ""
@@ -56,6 +61,34 @@ def parse_playwright_js(js_code: str) -> list[dict]:
             r"\(([^)]*)\)",                            # action args
             line,
         )
+        # ── 2b. page.getByRole('role')[.first()/.nth(n)].<action>(args)  — no name option
+        #        e.g. await page.getByRole('searchbox').nth(1).fill('Sanket Naik')
+        if not m:
+            m2 = re.match(
+                r"await page\.getByRole\("
+                r"['\"](\w+)['\"]"                     # role (no options object)
+                r"\)"
+                r"(\.first\(\)|\.nth\(\d+\))?"         # optional nth/first
+                r"\.([\w]+)"                           # action method
+                r"\(([^)]*)\)",                        # action args
+                line,
+            )
+            if m2:
+                role, nth_raw, action, args = m2.groups()
+                nth = _parse_nth(nth_raw)
+                value = _extract_string_arg(args) if action == "fill" else None
+                if action in ("click", "fill", "check", "press", "dblclick", "hover"):
+                    steps.append({
+                        "step_type": "action",
+                        "locator_type": "role",
+                        "role": role,
+                        "name": None,   # no name — locator matches by role only
+                        "nth": nth,
+                        "action": action,
+                        "value": value,
+                        "url": current_url,
+                    })
+                continue
         if m:
             role, name, nth_raw, action, args = m.groups()
             nth = _parse_nth(nth_raw)
@@ -74,7 +107,43 @@ def parse_playwright_js(js_code: str) -> list[dict]:
             })
             continue
 
-        # ── 3. page.locator('selector')[.first()/.nth(n)].<action>(args)
+        # ── 3a. page.locator('#id').getByRole('role', { name: '...' })[.nth(n)].<action>(args)
+        #        e.g. await page.locator('#dvaddbutton').getByRole('link').click()
+        #             await page.locator('#sel2-x').getByRole('searchbox').nth(1).fill('Sanket')
+        m = re.match(
+            r"await page\.locator\(['\"]([^'\"]+)['\"]\)"
+            r"\.getByRole\("
+            r"['\"](\w+)['\"]"                                    # role
+            r"(?:,\s*\{[^}]*\bname:\s*['\"]([^'\"]+)['\"][^}]*\})?"
+            r"\)"
+            r"(\.first\(\)|\.nth\(\d+\))?"                       # optional nth/first
+            r"\.([\w]+)"                                          # action
+            r"\(([^)]*)\)",                                       # action args
+            line,
+        )
+        if m:
+            outer_sel, role, name, nth_raw, action, args = m.groups()
+            nth = _parse_nth(nth_raw)
+            value = _extract_string_arg(args) if action == "fill" else None
+            if action not in ("click", "fill", "check", "press", "dblclick", "hover"):
+                pass  # fall through to next pattern
+            else:
+                # Strip leading '#' from the outer selector to normalise it
+                outer_sel_clean = outer_sel.lstrip("#")
+                steps.append({
+                    "step_type": "action",
+                    "locator_type": "chained_css_role",
+                    "selector": outer_sel_clean,   # the outer container id/css
+                    "role": role,                  # the inner role to look up inside the container
+                    "name": name,                  # optional name attribute for the role
+                    "nth": nth,
+                    "action": action,
+                    "value": value,
+                    "url": current_url,
+                })
+                continue
+
+        # ── 3b. page.locator('selector')[.first()/.nth(n)].<action>(args)
         m = re.match(
             r"await page\.locator\(['\"]([^'\"]+)['\"]\)"
             r"(\.first\(\)|\.nth\(\d+\))?"

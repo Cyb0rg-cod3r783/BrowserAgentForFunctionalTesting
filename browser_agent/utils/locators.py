@@ -101,6 +101,20 @@ def generate_locators(element_attrs: dict) -> list[LocatorSpec]:
             confidence=0.40
         ))
 
+    # 7. chained_css_role (confidence 0.90) — page.locator('#outer').getByRole('role')
+    #    Emitted when the event carries a 'chained_selector' attribute from the parser.
+    chained_selector = element_attrs.get("chained_selector")
+    chained_role = element_attrs.get("chained_role")
+    if chained_selector and chained_role:
+        chained_name = element_attrs.get("chained_name", "")
+        # Encode as  "#selector|role|name"  so the value stays a plain string
+        chained_value = f"#{chained_selector}|{chained_role}|{chained_name or ''}"
+        locators.append(LocatorSpec(
+            strategy="chained_css_role",
+            value=chained_value,
+            confidence=0.90
+        ))
+
     # Sort by confidence descending
     locators.sort(key=lambda l: l.confidence, reverse=True)
     return locators
@@ -139,6 +153,18 @@ def _build_playwright_locator(page: Page, spec: LocatorSpec):
         loc = page.locator(f"#{value}")
     elif strategy in ("css_name", "xpath_text", "css"):
         loc = page.locator(value)
+    elif strategy == "chained_css_role":
+        # value format: "#selector|role|name"
+        # Reconstruct: page.locator('#selector').getByRole('role', name='name')
+        parts = value.split("|", 2)
+        outer_sel = parts[0]          # e.g. "#dvaddbutton"
+        inner_role = parts[1]         # e.g. "link"
+        inner_name = parts[2] if len(parts) > 2 else ""
+        container = page.locator(outer_sel)
+        if inner_name:
+            loc = container.get_by_role(inner_role, name=inner_name)
+        else:
+            loc = container.get_by_role(inner_role)
     else:
         loc = page.locator(value)
 
@@ -167,8 +193,10 @@ async def resolve_locator(
     for spec in sorted_locators:
         try:
             loc = _build_playwright_locator(page, spec)
-            await expect(loc).to_be_visible(timeout=timeout_ms)
-            return (loc, spec.strategy)
+            # Use .first to avoid Playwright strict mode errors when a locator matches multiple elements
+            first_loc = loc.first
+            await expect(first_loc).to_be_visible(timeout=timeout_ms)
+            return (first_loc, spec.strategy)
         except Exception:
             continue
 

@@ -159,3 +159,40 @@ or
 }}
 """
 
+
+SEGMENT_TEST_GENERATION_PROMPT = """\
+You are a senior QA engineer. Generate comprehensive test cases specifically targeting a subset of fields in a user flow.
+Return ONLY valid JSON (no preamble, no markdown fences).
+
+Flow name: {flow_name}
+
+Target Fields to Test in this segment:
+{segment_fields_json}
+
+Instructions:
+1. Generate test cases specifically targeting the fields listed in "Target Fields to Test".
+2. For each targeted field, generate 3-4 negative and edge-case test cases (e.g. empty, invalid formats, special characters, max length, etc.).
+3. For each test case, define:
+   - name: Descriptive name of the test case (e.g. Company Code - Special Characters)
+   - category: negative|edge_case
+   - target_element_id: The ID of the field being tested
+   - mutated_value: The specific test input to use for this field
+   - assertions: list of assertions (e.g., text_equals or element_visible with the expected error message/toast text, or url_contains)
+4. DO NOT use javascript expressions or method calls like .repeat() in string values. Use literal string values only.
+5. For 'element_visible' or 'text_equals' assertions, the 'expected' field must contain the specific text content expected to be found/visible (e.g. "Company Code is Required").
+
+Return ONLY this JSON structure:
+{{
+  "test_cases": [
+    {{
+      "name": "Descriptive test case name",
+      "category": "negative|edge_case",
+      "target_element_id": "element_id_here",
+      "mutated_value": "value_to_use",
+      "assertions": [
+        {{"type": "url_contains|element_visible|text_equals|element_count|element_absent", "expected": "expected_value", "element_label": "optional element label"}}
+      ]
+    }}
+  ]
+}}
+"""

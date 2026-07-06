@@ -502,13 +502,19 @@ class ModelBuilder:
         lt = step.get("locator_type", "")
         nth = str(step.get("nth", ""))
         if lt == "role":
-            return f"role|{step.get('role')}|{step.get('name')}|{nth}"
+            # Use "" for None name (nameless getByRole) to avoid "None" string in key
+            name = step.get("name") or ""
+            return f"role|{step.get('role')}|{name}|{nth}"
         elif lt in ("id", "css", "xpath"):
             return f"{lt}|{step.get('selector')}|{nth}"
         elif lt == "text":
             return f"text|{step.get('text')}|{nth}"
         elif lt in ("aria_label", "placeholder"):
-            return f"{lt}|{step.get('name')}|{nth}"
+            name = step.get("name") or ""
+            return f"{lt}|{name}|{nth}"
+        elif lt == "chained_css_role":
+            name = step.get("name") or ""
+            return f"chained|{step.get('selector')}|{step.get('role')}|{name}|{nth}"
         return f"unknown|{nth}"
 
     def _codegen_step_to_locators(self, step: dict) -> tuple[list[LocatorSpec], str]:
@@ -520,8 +526,14 @@ class ModelBuilder:
 
         if lt == "role":
             role = step.get("role", "")
-            name = step.get("name", "")
-            if role == "textbox":
+            # Safely coerce None → "" so LocatorSpec (which requires str) never receives None.
+            # branch 2b (getByRole without { name: }) explicitly sets name=None.
+            name = step.get("name") or ""
+            if not name:
+                # No name supplied — identify by role only (will use nth at runtime)
+                element_type = self._role_to_html_tag(role)
+                locators.append(LocatorSpec(strategy="role", value=f"{role}:", confidence=0.75))
+            elif role == "textbox":
                 element_type = "input"
                 # Both aria_label and placeholder match textbox name
                 locators.append(LocatorSpec(strategy="aria_label", value=name, confidence=0.95))
@@ -566,6 +578,27 @@ class ModelBuilder:
             element_type = "input"
             locators.append(LocatorSpec(strategy="placeholder", value=step.get("name", ""), confidence=0.85))
 
+        elif lt == "chained_css_role":
+            # e.g. page.locator('#dvaddbutton').getByRole('link').click()
+            selector = step.get("selector", "")   # outer container id (without '#')
+            role = step.get("role", "")
+            name = step.get("name") or ""
+            # Encode as "#selector|role|name" — decoded by _build_playwright_locator
+            chained_value = f"#{selector}|{role}|{name}"
+            element_type = self._role_to_html_tag(role)
+            locators.append(LocatorSpec(
+                strategy="chained_css_role",
+                value=chained_value,
+                confidence=0.90
+            ))
+            # Also store a plain id fallback so legacy resolve_locator can try #selector first
+            if selector:
+                locators.append(LocatorSpec(
+                    strategy="id",
+                    value=selector,
+                    confidence=0.50
+                ))
+
         # If nth is set, store it so the executor can use .nth()
         if nth is not None and locators:
             for loc in locators:
@@ -582,14 +615,20 @@ class ModelBuilder:
 
         for loc in element.locators:
             if lt == "role":
-                name = step.get("name", "")
+                # Safely handle None name (set by branch 2b for nameless getByRole)
+                name = step.get("name") or ""
                 role = step.get("role", "")
-                if loc.strategy == "aria_label" and loc.value == f"{name}{nth_suffix}":
-                    return True
-                if loc.strategy == "placeholder" and loc.value == f"{name}{nth_suffix}":
-                    return True
-                if loc.strategy == "role" and loc.value == f"{role}:{name}{nth_suffix}":
-                    return True
+                if not name:
+                    # Nameless role — match by "role:" value + nth
+                    if loc.strategy == "role" and loc.value == f"{role}:{nth_suffix}":
+                        return True
+                else:
+                    if loc.strategy == "aria_label" and loc.value == f"{name}{nth_suffix}":
+                        return True
+                    if loc.strategy == "placeholder" and loc.value == f"{name}{nth_suffix}":
+                        return True
+                    if loc.strategy == "role" and loc.value == f"{role}:{name}{nth_suffix}":
+                        return True
             elif lt in ("id", "css", "xpath"):
                 selector = step.get("selector", "")
                 if loc.value == f"{selector}{nth_suffix}":
@@ -602,6 +641,13 @@ class ModelBuilder:
             elif lt in ("aria_label", "placeholder"):
                 name = step.get("name", "")
                 if loc.strategy in ("aria_label", "placeholder") and loc.value == f"{name}{nth_suffix}":
+                    return True
+            elif lt == "chained_css_role":
+                selector = step.get("selector", "")
+                role = step.get("role", "")
+                name = step.get("name") or ""
+                expected_val = f"#{selector}|{role}|{name}{nth_suffix}"
+                if loc.strategy == "chained_css_role" and loc.value == expected_val:
                     return True
         return False
 
