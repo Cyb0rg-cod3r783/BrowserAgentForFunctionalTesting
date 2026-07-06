@@ -178,18 +178,19 @@ class TestExecutor:
                         if element:
                             step_result.element_label = element.semantic_label
                             locator, strategy_used = await resolve_locator(
-                                page, element, self.llm_client
+                                page, element, self.llm_client,
+                                timeout_ms=10000
                             )
                             step_result.locator_used = strategy_used
 
                             # Execute action
                             await self._execute_action(page, locator, step)
 
-                            # Wait for network idle (short timeout)
+                            # Wait for network idle (longer timeout to stabilize on slow staging)
                             try:
                                 await page.wait_for_load_state(
                                     "networkidle",
-                                    timeout=2000
+                                    timeout=5000
                                 )
                             except Exception:
                                 pass

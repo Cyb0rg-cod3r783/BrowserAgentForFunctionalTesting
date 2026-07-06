@@ -551,7 +551,8 @@ class ModelBuilder:
                 element_type = "select"
                 locators.append(LocatorSpec(strategy="aria_label", value=name, confidence=0.90))
             else:
-                locators.append(LocatorSpec(strategy="aria_label", value=name, confidence=0.80))
+                locators.append(LocatorSpec(strategy="role", value=f"{role}:{name}", confidence=0.85))
+                locators.append(LocatorSpec(strategy="aria_label", value=name, confidence=0.75))
 
         elif lt == "id":
             element_type = "input"
